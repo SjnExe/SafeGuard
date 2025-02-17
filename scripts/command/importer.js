@@ -9,7 +9,7 @@ import "../command/src/summon_npc";
 import "../command/src/vanish";
 import "../command/src/clearchat";
 import "../command/src/fakeleave";
-import "../command/src/fakeleave_server";
+import "../command/src/fakeleavesv";
 import "../command/src/lagclear";
 import "../command/src/notify";
 import "../command/src/worldborder";
