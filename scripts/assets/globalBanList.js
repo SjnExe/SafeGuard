@@ -1,3 +1,4 @@
+//Ban offline players, need restart to work
 export const globalBanList = [
     "nicktrosgaming",
 	"thekingpengu",
