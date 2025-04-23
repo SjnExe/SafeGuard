@@ -9,7 +9,7 @@ export default {
         //wether to send detection alerts to everyone(true) or just to admins (false)
         "sendAlertsToEveryone": true,
         //if only owner status players can edit modules
-        "ownerOnlySettings": false
+        "ownerOnlySettings": true
 
     },
     "combat": {
