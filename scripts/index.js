@@ -202,7 +202,7 @@ world.afterEvents.playerSpawn.subscribe((data) => {
 	if (welcomerisOn) {
 		const firstTimeWelcome = player.getDynamicProperty("safeguard:firstTimeWelcome");
 		if (!firstTimeWelcome) {
-			world.sendMessage(`§6[§eSafeGuard§6]§r§e ${player.name}§b is joining for the first time! This realm is protected by §eSafeGuard§b, enjoy your stay!§r`);
+			world.sendMessage(`§6[§eSafeGuard§6]§r§e ${player.name}§b is joining for the first time! This server is protected by §eSafeGuard§b, enjoy your stay!§r`);
 			player.setDynamicProperty("safeguard:firstTimeWelcome", true);
 		} else {
 			world.sendMessage(`§6[§eSafeGuard§6]§r§e ${player.name}§b is joining on §e${player.clientSystemInfo.platformType}`);
