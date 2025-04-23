@@ -3,7 +3,7 @@ import { sendMessageToAllAdmins } from "../../assets/util";
 import { world } from '@minecraft/server';
 
 newCommand({
-    name: "fakeleave_server",
+    name: "fakeleave",
     description: "Simulate leaving the server",
     run: (data) => {
         const { player } = data;
