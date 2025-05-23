@@ -635,26 +635,13 @@ world.afterEvents.itemUse.subscribe((data) => {
 			.button("Player Actions", "textures/ui/icon_multiplayer.png")
 			.button("Unban Player", "textures/items/iron_sword.png")
 			.button("Ban Logs", "textures/items/banner_pattern.png")
-		player.playSound("random.pop"); 
+			player.playSound("random.pop");
 
-		mainForm.show(player).then((formData) => { 
-			if (formData.canceled) return;
-			// The ui functions themselves should handle errors from form processing or subsequent actions
-			switch (formData.selection) {
-				case 0:
-					return ui.settingSelector(player);
-				case 1:
-					return ui.playerSelectionForm(player, "ban");
-				case 2:
-					return ui.playerSelectionForm(player, "action");
-				case 3:
-					return ui.unbanForm(player);
-				case 4:
-					return ui.banLogForm(player);
-			}
-		}).catch(e => logDebug("[Anti Cheats ERROR] Error showing/processing main admin panel form:", player.name, e, e.stack));
+		// Directly call the new main admin panel
+		return ui.showAdminPanelMain(player);
+
 	} catch (e) {
-		logDebug("[Anti Cheats ERROR] Error in itemUse event:", data?.source?.name, e, e.stack);
+		logDebug("[Anti Cheats ERROR] Error in itemUse event for ac:admin_panel:", data?.source?.name, e, e.stack);
 	}
 });
 

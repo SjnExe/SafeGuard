@@ -80,6 +80,45 @@
           "status": "completed"
         }
       ]
+    },
+    {
+      "id": "VI",
+      "title": "Polish Addon UI and Add New Features",
+      "status": "in progress",
+      "difficulty": "High",
+      "considerations": "Overhauling admin panel UI, adding system information, enhancing logs, and potentially other features inspired by reference repositories. Involves resource pack and behavior pack changes.",
+      "sub_tasks": [
+        {
+          "id": "VI.1",
+          "title": "Design a Main Admin Panel UI Structure",
+          "status": "completed"
+        },
+        {
+          "id": "VI.2",
+          "title": "Refactor Existing UI Forms into the New Structure",
+          "status": "completed"
+        },
+        {
+          "id": "VI.3",
+          "title": "Improve Visuals of UI Forms (Styling)",
+          "status": "completed"
+        },
+        {
+          "id": "VI.4",
+          "title": "Add New Feature: System Information Display",
+          "status": "in progress"
+        },
+        {
+          "id": "VI.5",
+          "title": "Add New Feature: Enhanced Logging Interface",
+          "status": "pending"
+        },
+        {
+          "id": "VI.6",
+          "title": "Testing of UI Polish and New Features",
+          "status": "pending"
+        }
+      ]
     }
   ]
 }

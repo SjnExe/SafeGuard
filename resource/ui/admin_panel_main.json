@@ -1,0 +1,34 @@
+{
+  "namespace": "admin_panel_ui",
+
+  "admin_panel_main_screen@common.action_form_data": {
+    "title": "§l§7Admin Panel",
+    "buttons": [
+      {
+        "id": "player_management_button",
+        "text": "Player Management",
+        "icon": "textures/ui/icon_steve.png"
+      },
+      {
+        "id": "server_settings_button",
+        "text": "Server Settings",
+        "icon": "textures/ui/icon_setting.png"
+      },
+      {
+        "id": "view_logs_button",
+        "text": "View Logs",
+        "icon": "textures/ui/icon_book_writable.png"
+      },
+      {
+        "id": "system_info_button",
+        "text": "System Information",
+        "icon": "textures/ui/icon_resource_pack.png"
+      },
+      {
+        "id": "close_button",
+        "text": "§cClose",
+        "icon": "textures/ui/cancel.png"
+      }
+    ]
+  }
+}
