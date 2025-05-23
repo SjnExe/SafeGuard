@@ -61,6 +61,25 @@
           "status": "pending"
         }
       ]
+    },
+    {
+      "id": "V",
+      "title": "Implement Teleport Command and Abbreviations",
+      "status": "completed",
+      "difficulty": "Medium",
+      "considerations": "Added .teleport command with admin restrictions, coordinate and player-to-player teleportation. Added aliases: .tp, .t, .tpl.",
+      "sub_tasks": [
+        {
+          "id": "V.1",
+          "title": "Create .teleport command",
+          "status": "completed"
+        },
+        {
+          "id": "V.2",
+          "title": "Add configurable aliases (.tp, .t, .tpl) for .teleport",
+          "status": "completed"
+        }
+      ]
     }
   ]
 }

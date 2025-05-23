@@ -254,6 +254,8 @@ export default {
         "fr": "freeze",
         "vn": "vanish",
         "ci": "copyinv",
-        "wb": "worldborder"
+        "wb": "worldborder",
+        "t": "teleport",
+        "tpl": "teleport"
     }
 }
