@@ -61,6 +61,86 @@
           "status": "pending"
         }
       ]
+    },
+    {
+      "id": "V",
+      "title": "Implement Teleport Command and Abbreviations",
+      "status": "completed",
+      "difficulty": "Medium",
+      "considerations": "Added .teleport command with admin restrictions, coordinate and player-to-player teleportation. Added aliases: .tp, .t, .tpl.",
+      "sub_tasks": [
+        {
+          "id": "V.1",
+          "title": "Create .teleport command",
+          "status": "completed"
+        },
+        {
+          "id": "V.2",
+          "title": "Add configurable aliases (.tp, .t, .tpl) for .teleport",
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "id": "VI",
+      "title": "Polish Addon UI and Add New Features",
+      "status": "in progress",
+      "difficulty": "High",
+      "considerations": "Overhauling admin panel UI, adding system information, enhancing logs, and potentially other features inspired by reference repositories. Involves resource pack and behavior pack changes.",
+      "sub_tasks": [
+        {
+          "id": "VI.1",
+          "title": "Design a Main Admin Panel UI Structure",
+          "status": "completed"
+        },
+        {
+          "id": "VI.2",
+          "title": "Refactor Existing UI Forms into the New Structure",
+          "status": "completed"
+        },
+        {
+          "id": "VI.3",
+          "title": "Improve Visuals of UI Forms (Styling)",
+          "status": "completed"
+        },
+        {
+          "id": "VI.4",
+          "title": "Add New Feature: System Information Display",
+          "status": "completed"
+        },
+        {
+          "id": "VI.5",
+          "title": "Add New Feature: Enhanced Logging Interface",
+          "status": "in progress",
+          "sub_tasks": [
+            {
+              "id": "VI.5.1",
+              "title": "Review current banLogForm and identify areas for enhancement",
+              "status": "pending"
+            },
+            {
+              "id": "VI.5.2",
+              "title": "Implement UI changes for enhanced log display (e.g., more details, better navigation)",
+              "status": "pending"
+            },
+            {
+              "id": "VI.5.3",
+              "title": "Consider and implement filtering/sorting options if feasible",
+              "status": "pending"
+            },
+            {
+              "id": "VI.5.4",
+              "title": "Explore adding other log types (e.g., command usage, server events) if data is accessible",
+              "status": "pending"
+            }
+          ]
+        },
+        {
+          "id": "VI.6",
+          "title": "Testing of UI Polish and New Features",
+          "status": "pending"
+        }
+      ]
     }
   ]
 }
