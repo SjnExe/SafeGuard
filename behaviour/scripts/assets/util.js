@@ -1,6 +1,6 @@
 import * as Minecraft from "@minecraft/server";
 import * as config from "../config";
-import { SafeguardModule } from "../classes/module";
+import { ACModule } from "../classes/module";
 const world = Minecraft.world;
 
 
@@ -37,7 +37,7 @@ export function formatMilliseconds(milliseconds) {
 }
 
 /**
- * Creates a new safeguard ban log
+ * Creates a new Anti Cheats ban log
  *
  * @param {Object} obj - The ban log data
  * @param {string} obj.a - The banned person's name
@@ -46,7 +46,7 @@ export function formatMilliseconds(milliseconds) {
  * @param {string} obj.d - Ban reason
  */
 export function generateBanLog(obj) {
-	let logsString = world.getDynamicProperty("safeguard:banLogs");
+	let logsString = world.getDynamicProperty("ac:banLogs");
 	let newLogs = [];
 
 	if (logsString) {
@@ -67,9 +67,9 @@ export function generateBanLog(obj) {
 		stringifiedLogs = JSON.stringify(newLogs);
 	}
 	try {
-		world.setDynamicProperty("safeguard:banLogs", stringifiedLogs);
+		world.setDynamicProperty("ac:banLogs", stringifiedLogs);
 	} catch (e) {
-		console.error("[SafeGuard ERROR] Failed to set banLogs dynamic property:", e, e.stack);
+		console.error("[Anti Cheats ERROR] Failed to set banLogs dynamic property:", e, e.stack);
 	}
 }
 
@@ -106,24 +106,24 @@ export function invsee(senderPlayer, targetPlayer) {
 
 		const inv = targetPlayer.getComponent("minecraft:inventory")?.container;
 		if (!inv) {
-			logDebug(`[SafeGuard ERROR] Target player ${targetPlayer.name} inventory component not found in invsee.`);
+			logDebug(`[Anti Cheats ERROR] Target player ${targetPlayer.name} inventory component not found in invsee.`);
 			senderPlayer.sendMessage("§cCould not retrieve target player's inventory component.");
 			return;
 		}
 		
-		senderPlayer.sendMessage(`§6[§eSafeGuard§6]§f ${targetPlayer.name}'s inventory:\n\n`);
+		senderPlayer.sendMessage(`§6[§eAnti Cheats§6]§f ${targetPlayer.name}'s inventory:\n\n`);
 		for (let i = 0; i < inv.size; i++) {
 			const item = inv.getItem(i);
 			if (!item) continue;
 
 			const { amount,nameTag,typeId } = item;
 			if (!typeId) continue;
-			senderPlayer.sendMessage(`§6[§eSafeGuard§6]§f Slot §e${i}§f: §e${typeId.replace('minecraft:','')}§f x§e${amount} ${nameTag ? `§fItem Name: §r${nameTag}` : ""}`);
+			senderPlayer.sendMessage(`§6[§eAnti Cheats§6]§f Slot §e${i}§f: §e${typeId.replace('minecraft:','')}§f x§e${amount} ${nameTag ? `§fItem Name: §r${nameTag}` : ""}`);
 		}
 		
 		const targetArmorContainer = targetPlayer.getComponent(Minecraft.EntityComponentTypes.Equippable);
 		if (!targetArmorContainer) {
-			logDebug(`[SafeGuard ERROR] Target player ${targetPlayer.name} equippable component not found in invsee.`);
+			logDebug(`[Anti Cheats ERROR] Target player ${targetPlayer.name} equippable component not found in invsee.`);
 			senderPlayer.sendMessage("§cCould not retrieve target player's armor component.");
 			return;
 		}
@@ -134,10 +134,10 @@ export function invsee(senderPlayer, targetPlayer) {
 
 			const { amount, nameTag, typeId } = item;
 			if (!typeId) continue;
-			senderPlayer.sendMessage(`§6[§eSafeGuard§6]§f Slot §e${armorKeys[i]}§f: §e${typeId.replace('minecraft:', '')}§f x§e${amount} ${nameTag ? `§fItem Name: §r${nameTag}` : ""}`);
+			senderPlayer.sendMessage(`§6[§eAnti Cheats§6]§f Slot §e${armorKeys[i]}§f: §e${typeId.replace('minecraft:', '')}§f x§e${amount} ${nameTag ? `§fItem Name: §r${nameTag}` : ""}`);
 		}
 	} catch (e) {
-		logDebug("[SafeGuard ERROR] Error in invsee:", e, e.stack);
+		logDebug("[Anti Cheats ERROR] Error in invsee:", e, e.stack);
 		if(senderPlayer instanceof Minecraft.Player) senderPlayer.sendMessage("§cAn error occurred while trying to display the inventory.");
 	}
 }
@@ -151,7 +151,7 @@ export function getPlayerByName(name){
 		const players = world.getPlayers({ name: name });
 		return players[0] ?? false;
 	} catch (e) {
-		logDebug("[SafeGuard ERROR] Failed to get player by name:", name, e, e.stack);
+		logDebug("[Anti Cheats ERROR] Failed to get player by name:", name, e, e.stack);
 		return false;
 	}
 }
@@ -180,7 +180,7 @@ export function scoreboardAction(id,type){
 }
 
 export function logDebug(...msg){
-	if(!msg.join(' ').startsWith("[")) msg.unshift("[SafeGuard]")
+	if(!msg.join(' ').startsWith("[")) msg.unshift("[Anti Cheats]")
 	if(config.default.other.consoleDebugMode) console.warn(...msg);
 }
 
@@ -193,15 +193,15 @@ export function addPlayerToUnbanQueue(adminPlayer,playerName){
 		if (!(adminPlayer instanceof Minecraft.Player)) throw TypeError("Param 'adminPlayer' isn't instanceof Player");
 		if(typeof playerName !== "string") throw TypeError(`Param 'playerName' is typeof '${typeof playerName}', should be string`);
 
-		if (world.safeguardUnbanQueue.includes(playerName)) {
-			adminPlayer.sendMessage(`§6[§eSafeGuard§6]§f The player §e${playerName}§f is already pending an unban.`);
+		if (world.acUnbanQueue.includes(playerName)) {
+			adminPlayer.sendMessage(`§6[§eAnti Cheats§6]§f The player §e${playerName}§f is already pending an unban.`);
 			return;
 		}
-		world.safeguardUnbanQueue.push(playerName);
-		world.setDynamicProperty("safeguard:unbanQueue", JSON.stringify(world.safeguardUnbanQueue));
-		adminPlayer.sendMessage(`§6[§eSafeGuard§6]§f The player §e${playerName}§f was successfully put into unban queue, they will be unbanned when they join.`);
+		world.acUnbanQueue.push(playerName);
+		world.setDynamicProperty("ac:unbanQueue", JSON.stringify(world.acUnbanQueue));
+		adminPlayer.sendMessage(`§6[§eAnti Cheats§6]§f The player §e${playerName}§f was successfully put into unban queue, they will be unbanned when they join.`);
 	} catch (e) {
-		logDebug("[SafeGuard ERROR] Error in addPlayerToUnbanQueue:", e, e.stack);
+		logDebug("[Anti Cheats ERROR] Error in addPlayerToUnbanQueue:", e, e.stack);
 		if(adminPlayer instanceof Minecraft.Player) adminPlayer.sendMessage("§cAn error occurred while adding player to unban queue.");
 	}
 }
@@ -217,7 +217,7 @@ export function sendMessageToAllAdmins(message = "No message provided",isANotifi
 	let entityQueryOptions = {};
 	if(isANotification){
 		entityQueryOptions.scoreOptions = [{
-			objective: "safeguard:notify",
+			objective: "ac:notify",
 			maxScore: 1,
 			minScore: 1,
 			exclude: false
@@ -231,12 +231,12 @@ export function sendMessageToAllAdmins(message = "No message provided",isANotifi
 				try {
 					admin.sendMessage(message);
 				} catch (e) {
-					logDebug("[SafeGuard ERROR] Failed to send message to admin", admin.name, "in sendMessageToAllAdmins:", e, e.stack);
+					logDebug("[Anti Cheats ERROR] Failed to send message to admin", admin.name, "in sendMessageToAllAdmins:", e, e.stack);
 				}
 			}
 		})
 	} catch (e) {
-		logDebug("[SafeGuard ERROR] Error in sendMessageToAllAdmins (getting players or iterating):", e, e.stack);
+		logDebug("[Anti Cheats ERROR] Error in sendMessageToAllAdmins (getting players or iterating):", e, e.stack);
 	}
 }
 
@@ -255,18 +255,18 @@ export function teleportToGround(player) {
 	try {
 		const tempBlock = dimension.getBlockFromRay(playerPosition, raycastDirection)?.block;
 		if (!tempBlock) {
-			logDebug("[SafeGuard] Couldn't find a ground block to teleport player to:", player.name);
+			logDebug("[Anti Cheats] Couldn't find a ground block to teleport player to:", player.name);
 			return;
 		}
 		Minecraft.system.run(() => {
 			try {
 				player.tryTeleport({ x: tempBlock.x, y: tempBlock.y + 1, z: tempBlock.z });
 			} catch (e) {
-				logDebug("[SafeGuard ERROR] Failed to teleport player", player.name, "to ground (inside system.run):", e, e.stack);
+				logDebug("[Anti Cheats ERROR] Failed to teleport player", player.name, "to ground (inside system.run):", e, e.stack);
 			}
 		});
 	} catch (e) {
-		logDebug("[SafeGuard ERROR] Error in teleportToGround (getting block or scheduling run):", player.name, e, e.stack);
+		logDebug("[Anti Cheats ERROR] Error in teleportToGround (getting block or scheduling run):", player.name, e, e.stack);
 	}
 }
 
@@ -289,7 +289,7 @@ export function copyInv(senderPlayer, targetPlayer) {
 				const container = senderPlayer.getComponent("minecraft:inventory")?.container;
 
 				if (!targetContainer || !container) {
-					logDebug(`[SafeGuard ERROR] Inventory component not found for sender or target in copyInv. Sender: ${senderPlayer.name}, Target: ${targetPlayer.name}`);
+					logDebug(`[Anti Cheats ERROR] Inventory component not found for sender or target in copyInv. Sender: ${senderPlayer.name}, Target: ${targetPlayer.name}`);
 					senderPlayer.sendMessage("§cError accessing inventory components.");
 					return;
 				}
@@ -305,7 +305,7 @@ export function copyInv(senderPlayer, targetPlayer) {
 				const targetArmorContainer = targetPlayer.getComponent(Minecraft.EntityComponentTypes.Equippable);
 
 				if (!armorContainer || !targetArmorContainer) {
-					logDebug(`[SafeGuard ERROR] Equippable component not found for sender or target in copyInv. Sender: ${senderPlayer.name}, Target: ${targetPlayer.name}`);
+					logDebug(`[Anti Cheats ERROR] Equippable component not found for sender or target in copyInv. Sender: ${senderPlayer.name}, Target: ${targetPlayer.name}`);
 					senderPlayer.sendMessage("§cError accessing armor components.");
 					return;
 				}
@@ -315,14 +315,14 @@ export function copyInv(senderPlayer, targetPlayer) {
 					if(!item) continue;
 					armorContainer.setEquipment(armorKeys[i],item);
 				}
-				senderPlayer.sendMessage(`§6[§eSafeGuard§6]§f Finished copying inventory of §e${targetPlayer.name}`);
+				senderPlayer.sendMessage(`§6[§eAnti Cheats§6]§f Finished copying inventory of §e${targetPlayer.name}`);
 			} catch (e) {
-				logDebug("[SafeGuard ERROR] Error during copyInv (inside system.run):", senderPlayer.name, targetPlayer.name, e, e.stack);
+				logDebug("[Anti Cheats ERROR] Error during copyInv (inside system.run):", senderPlayer.name, targetPlayer.name, e, e.stack);
 				if(senderPlayer instanceof Minecraft.Player) senderPlayer.sendMessage("§cAn error occurred while copying the inventory.");
 			}
 		});
 	} catch (e) {
-		logDebug("[SafeGuard ERROR] Error scheduling copyInv:", senderPlayer.name, targetPlayer.name, e, e.stack);
+		logDebug("[Anti Cheats ERROR] Error scheduling copyInv:", senderPlayer.name, targetPlayer.name, e, e.stack);
 		if(senderPlayer instanceof Minecraft.Player) senderPlayer.sendMessage("§cAn error occurred while trying to copy the inventory.");
 	}
 }
@@ -333,7 +333,7 @@ export function copyInv(senderPlayer, targetPlayer) {
  * @param {Minecraft.Player} detectedPlayer - The player detected using cheats.
  * @param {string} detectionType - The type of cheat detected (e.g., "autoclicker").
  * @param {string | number} detectionValue - The detected value related to the cheat (e.g., CPS count).
- * @param {SafeguardModule.Modules} module - The name of the SafeGuard module that detected the cheat.
+ * @param {ACModule.Modules} module - The name of the Anti Cheats module that detected the cheat.
  * @throws {TypeError} Throws an error if parameters are of the wrong type.
  * @throws {ReferenceError} Throws an error if the module is not valid.
  * @returns {void} Sends a message to admins or all players based on the configuration.
@@ -343,29 +343,29 @@ export function sendAnticheatAlert(detectedPlayer, detectionType, detectionValue
 	if (typeof detectionType !== "string") throw TypeError(`"detectionType" is typeof ${typeof detectionType}, not string`);
 	if (typeof detectionValue !== "string" && typeof detectionValue !== "number") throw TypeError(`"detectionValue" is typeof ${typeof detectionValue}, not string or number`);
 
-	if (!SafeguardModule.getValidModules().includes(module)) throw ReferenceError(`"${module}" isn't a safeguard module.`);
+	if (!ACModule.getValidModules().includes(module)) throw ReferenceError(`"${module}" isn't an Anti Cheats module.`);
 
 	try {
 		if (!(detectedPlayer instanceof Minecraft.Player)) throw TypeError(`"detectedPlayer" is not an instance of Minecraft Player`);
 		if (typeof detectionType !== "string") throw TypeError(`"detectionType" is typeof ${typeof detectionType}, not string`);
 		if (typeof detectionValue !== "string" && typeof detectionValue !== "number") throw TypeError(`"detectionValue" is typeof ${typeof detectionValue}, not string or number`);
 
-		if (!SafeguardModule.getValidModules().includes(module)) throw ReferenceError(`"${module}" isn't a safeguard module.`);
+		if (!ACModule.getValidModules().includes(module)) throw ReferenceError(`"${module}" isn't an Anti Cheats module.`);
 
 		detectedPlayer.setWarning(module); // This now has its own try-catch
 
-		if (SafeguardModule.getModuleStatus(SafeguardModule.Modules.autoMod)) {
-			sendMessageToAllAdmins(`§6[§eSafeGuard Notify§6]§r§c ${detectedPlayer.name}§r was automatically kicked by SafeGuard AutoMod module. Detection[${module} = ${detectionValue}]`, true);
-			detectedPlayer.runCommand(`kick "${detectedPlayer.name}" §6[§eSafeGuard AutoMod§6]§r You have been detected cheating. Module[${module} = ${detectionValue}]`);
+		if (ACModule.getModuleStatus(ACModule.Modules.autoMod)) {
+			sendMessageToAllAdmins(`§6[§eAnti Cheats Notify§6]§r§c ${detectedPlayer.name}§r was automatically kicked by Anti Cheats AutoMod module. Detection[${module} = ${detectionValue}]`, true);
+			detectedPlayer.runCommand(`kick "${detectedPlayer.name}" §6[§eAnti Cheats AutoMod§6]§r You have been detected cheating. Module[${module} = ${detectionValue}]`);
 		}
 
-		const message = `§6[§eSafeGuard§6]§r §c§l${detectedPlayer.name}§r§4 was detected using §l§c${detectionType}§r§4 with a value of §l§c${detectionValue}§r§4!`;
+		const message = `§6[§eAnti Cheats§6]§r §c§l${detectedPlayer.name}§r§4 was detected using §l§c${detectionType}§r§4 with a value of §l§c${detectionValue}§r§4!`;
 		if (config.default.other.sendAlertsToEveryone) {
 			world.sendMessage(message);
 		} else {
 			sendMessageToAllAdmins(message, false);
 		}
 	} catch (e) {
-		logDebug("[SafeGuard ERROR] Error in sendAnticheatAlert:", detectedPlayer?.name, detectionType, module, e, e.stack);
+		logDebug("[Anti Cheats ERROR] Error in sendAnticheatAlert:", detectedPlayer?.name, detectionType, module, e, e.stack);
 	}
 }

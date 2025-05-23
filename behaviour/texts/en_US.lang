@@ -1,4 +1,4 @@
 ##bridge-file-version: #3
-pack.name=SafeGuard anti-cheat
-pack.description=made by Blazer#9677
-item.safeguard:admin_panel=Admin Panel
+pack.name=Anti Cheats
+pack.description=Anti Cheats Pack
+item.ac:admin_panel=Admin Panel

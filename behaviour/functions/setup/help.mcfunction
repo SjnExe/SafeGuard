@@ -1,2 +1,2 @@
-tellraw @s {"rawtext":[{"text":"§6[§eSafeGuard§6]§r Please join our discord server for help! Invite: §ediscord.gg/nGu5gehXs3§r"}]}
-tellraw @s {"rawtext":[{"text":"§6[§eSafeGuard§6]§r Please also read the github page for command help. Link: §egithub.com/BlaizerBrumo/SafeGuard/§r"}]}
+tellraw @a {"rawtext":[{"text":"§6[§eAnti Cheats§6]§r Please join our discord server for any help/bug reports: https://discord.gg/T2Cqj5P7pW"}]}
+tellraw @a {"rawtext":[{"text":"§6[§eAnti Cheats§6]§r Please also read the github page for any help: https://github.com/BlaizerBrumo/SafeGuard/"}]}
