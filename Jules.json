@@ -1,50 +1,6 @@
 {
   "active_goals": [
     {
-      "id": "I",
-      "title": "Improve Error Handling (Paused)",
-      "status": "in_progress",
-      "difficulty": "Medium",
-      "considerations": "Requires careful attention to detail in many files. Ensure error messages are informative for admins/users.",
-      "sub_tasks": [
-        {
-          "id": "I.1",
-          "title": "Complete error handling for remaining command files in behaviour/scripts/command/src/",
-          "status": "in_progress",
-          "sub_tasks": [
-            {
-              "id": "I.1.7",
-              "title": "warn.js",
-              "status": "pending"
-            },
-            {
-              "id": "I.1.8",
-              "title": "warnings.js",
-              "status": "pending"
-            },
-            {
-              "id": "I.1.9",
-              "title": "worldborder.js",
-              "status": "pending"
-            }
-          ]
-        },
-        {
-          "id": "I.2",
-          "title": "Add error handling for UI form promise rejections in behaviour/scripts/assets/ui.js",
-          "status": "pending",
-          "sub_tasks": [
-            {
-              "id": "I.2.1",
-              "title": "Add .catch() to all form.show().then() promises in behaviour/scripts/assets/ui.js",
-              "status": "pending",
-              "considerations": "Ensure user gets a generic error message if a form fails to show or process."
-            }
-          ]
-        }
-      ]
-    },
-    {
       "id": "II",
       "title": "Address TODO Comments (Future)",
       "status": "pending",
