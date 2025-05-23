@@ -3,7 +3,7 @@ import { logDebug } from "../assets/util";
 
 
 
-class SafeGuardModule {
+class ACModule {
     Modules = {
         antiGmc: "Anti GMC",
         antiGrief: "Anti Grief",
@@ -48,17 +48,17 @@ class SafeGuardModule {
     getModuleStatus(module){
         if(!this.getValidModules().includes(module)) throw ReferenceError(`"${module}" is not a valid SafeGuard module.`);
     
-        return world.getDynamicProperty(`safeguard:${this.getModuleID(module)}`) ?? false;
+        return world.getDynamicProperty(`ac:${this.getModuleID(module)}`) ?? false;
     }
     toggleModule(module){
         if(!this.getValidModules().includes(module)) throw ReferenceError(`"${module}" is not a valid SafeGuard module.`);
     
         const moduleID = this.getModuleID(module);
-        const currentModuleState = world.getDynamicProperty(`safeguard:${moduleID}`) ?? false;
+        const currentModuleState = world.getDynamicProperty(`ac:${moduleID}`) ?? false;
     
-        world.setDynamicProperty(`safeguard:${moduleID}`,!currentModuleState);
+        world.setDynamicProperty(`ac:${moduleID}`,!currentModuleState);
     
-        logDebug(`[SafeGuard] Toggled ${moduleID} to ${!currentModuleState}`);
+        logDebug(`[Anti Cheats] Toggled ${moduleID} to ${!currentModuleState}`);
     }
     getValidModules(skipNestedJSON = false){
         const moduleArray = [];
@@ -75,4 +75,4 @@ class SafeGuardModule {
 
 };  
 
-export const SafeguardModule = new SafeGuardModule();
+export const ACModule = new ACModule();

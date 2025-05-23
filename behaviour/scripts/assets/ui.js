@@ -1,7 +1,7 @@
 import * as Minecraft from '@minecraft/server';
 import { ActionFormData, MessageFormData, ModalFormData } from '@minecraft/server-ui';
 import { addPlayerToUnbanQueue, copyInv, getPlayerByName, invsee, logDebug, millisecondTime, sendMessageToAllAdmins } from './util.js';
-import { SafeguardModule } from '../classes/module.js';
+import { ACModule } from '../classes/module.js';
 import * as config from "../config.js";
 
 const world = Minecraft.world;
@@ -9,7 +9,7 @@ const world = Minecraft.world;
 
 //ban form
 function banForm(player,targetPlayer,type,banReason){
-	if(targetPlayer.hasAdmin()) return player.sendMessage(`§6[§eSafeGuard§6]§r Can't ban §e${targetPlayer.name}§f they're an admin.`);
+	if(targetPlayer.hasAdmin()) return player.sendMessage(`§6[§eAnti Cheats§6]§r Can't ban §e${targetPlayer.name}§f they're an admin.`);
 
 	if(type == "quick"){
 		let confirmF = new MessageFormData()
@@ -21,24 +21,24 @@ function banForm(player,targetPlayer,type,banReason){
 			if(confirmData.selection === 1){
 				targetPlayer.ban("No reason provided.", Date.now(), true, player);
 
-				targetPlayer.runCommand(`kick "${targetPlayer.name}" §r§6[§eSafeGuard§6]§r §4You are permanently banned.\n§4Reason: §cNo reason provided\n§4Banned by: §c${player.name}`)
+				targetPlayer.runCommand(`kick "${targetPlayer.name}" §r§6[§eAnti Cheats§6]§r §4You are permanently banned.\n§4Reason: §cNo reason provided\n§4Banned by: §c${player.name}`)
         
-				player.sendMessage(`§6[§eSafeGuard§6]§f Successfully banned §e${targetPlayer.name}`);
-				sendMessageToAllAdmins(`§6[§eSafeGuard Notify§6]§f §e${player.name}§f banned §e${targetPlayer.name}§f!`,true);
+				player.sendMessage(`§6[§eAnti Cheats§6]§f Successfully banned §e${targetPlayer.name}`);
+				sendMessageToAllAdmins(`§6[§eAnti Cheats Notify§6]§f §e${player.name}§f banned §e${targetPlayer.name}§f!`,true);
 				
 			}
-			else return player.sendMessage(`§6[§eSafeGuard§6]§f Cancelled`);
+			else return player.sendMessage(`§6[§eAnti Cheats§6]§f Cancelled`);
 		})
 	}
 	else if(type=="slow"){
 		let banForm = new ModalFormData()
-		.title("SafeGuard Ban Form")
+		.title("Anti Cheats Ban Form")
 		.slider("Ban Time:\n\nDays",0,360,1,0)
 		.slider("Hours",0,23,1,0)
 		.slider("Minutes",0,59,1,0)
 		.toggle("Permanent", { defaultValue: false})
 		banForm.show(player).then((banFormData) => {
-			if(banFormData.canceled) return player.sendMessage(`§6[§eSafeGuard§6]§f Cancelled`);
+			if(banFormData.canceled) return player.sendMessage(`§6[§eAnti Cheats§6]§f Cancelled`);
 			const now = Date.now();
 			const values = banFormData.formValues;
 			let unbanMinute = values[2] * millisecondTime.minute;
@@ -48,32 +48,32 @@ function banForm(player,targetPlayer,type,banReason){
 			const isPermanent = values[3];
 			banReason = banReason ?? "No reason provided."
 			
-			if(unbanTime == now && !isPermanent) return player.sendMessage(`§r§6[§eSafeGuard§6]§r§l§c ERROR:§r§4 You did not enter an unban time and did not set the ban to permanent, please make the ban permanent or enter a custom time for unban. The ban was not performed on §c${targetPlayer.name}`) 
+			if(unbanTime == now && !isPermanent) return player.sendMessage(`§r§6[§eAnti Cheats§6]§r§l§c ERROR:§r§4 You did not enter an unban time and did not set the ban to permanent, please make the ban permanent or enter a custom time for unban. The ban was not performed on §c${targetPlayer.name}`) 
 
 			targetPlayer.ban(banReason, unbanTime, isPermanent, player);
 
-			player.sendMessage(`§6[§eSafeGuard§6]§f Successfully banned §e${targetPlayer.name}`);
-			sendMessageToAllAdmins(`§6[§eSafeGuard Notify§6]§f §e${player.name}§f banned §e${targetPlayer.name}§f!`, true);
+			player.sendMessage(`§6[§eAnti Cheats§6]§f Successfully banned §e${targetPlayer.name}`);
+			sendMessageToAllAdmins(`§6[§eAnti Cheats Notify§6]§f §e${player.name}§f banned §e${targetPlayer.name}§f!`, true);
 			
-			if (!isPermanent) player.runCommand(`kick "${targetPlayer.name}" §r§6[§eSafeGuard§6]§r §4You are banned.\n§4Time Remaining: §c${values[0]} Days ${values[1]} Hours ${values[2]} Mins\n§4Reason: §c${banReason == "" ? "No reason provided." : banReason}\n§4Banned by: §c${player.name}`)
-			if (isPermanent) player.runCommand(`kick "${targetPlayer.name}" §r§6[§eSafeGuard§6]§r §4You are permanently banned.\n§4Reason: §c${banReason == "" ? "No reason provided." : banReason}\n§4Banned by: §c${player.name}`)
+			if (!isPermanent) player.runCommand(`kick "${targetPlayer.name}" §r§6[§eAnti Cheats§6]§r §4You are banned.\n§4Time Remaining: §c${values[0]} Days ${values[1]} Hours ${values[2]} Mins\n§4Reason: §c${banReason == "" ? "No reason provided." : banReason}\n§4Banned by: §c${player.name}`)
+			if (isPermanent) player.runCommand(`kick "${targetPlayer.name}" §r§6[§eAnti Cheats§6]§r §4You are permanently banned.\n§4Reason: §c${banReason == "" ? "No reason provided." : banReason}\n§4Banned by: §c${player.name}`)
 			
 
 		})
 	}
 	else{
-		return player.sendMessage(`§6[§eSafeGuard§6]§r§c§lERROR:§4 Unexpected type of ban: §c${type}`)
+		return player.sendMessage(`§6[§eAnti Cheats§6]§r§c§lERROR:§4 Unexpected type of ban: §c${type}`)
 	}
 }
 
 export function unbanForm(player){
 	let unbanForm = new ModalFormData()
-	.title("SafeGuard Player Unban")
+	.title("Anti Cheats Player Unban")
 	.textField("Player Name","Player name to unban (case sensitive)");
 
 	unbanForm.show(player).then((formData) => {
 		if (formData.canceled) {
-			player.sendMessage(`§6[§eSafeGuard§6]§r You closed the form without saving!`);
+			player.sendMessage(`§6[§eAnti Cheats§6]§r You closed the form without saving!`);
 			return;
 		}
 		const playerName = formData.formValues[0];
@@ -86,7 +86,7 @@ export function settingSelector(player){
 	if (config.default.other.ownerOnlySettings && !player.isOwner()) return ownerLoginForm(player);
 
 	const form = new ActionFormData()
-		.title("SafeGuard Settings")
+		.title("Anti Cheats Settings")
 		.body(`Please select an option from below:`)
 		.button("Module Settings")
 		.button("Config Editor")
@@ -107,25 +107,25 @@ export function settingSelector(player){
 	})
 }
 export function banLogForm(player){
-	const logsString = world.getDynamicProperty("safeguard:banLogs");
+	const logsString = world.getDynamicProperty("ac:banLogs");
 
-	if (!logsString) return player.sendMessage(`§6[§eSafeGuard§6]§f No logs to display (property missing).`);
+	if (!logsString) return player.sendMessage(`§6[§eAnti Cheats§6]§f No logs to display (property missing).`);
 	
 	let newLogs;
 	try {
 		newLogs = JSON.parse(logsString);
 	} catch (error) {
-		logDebug("[SafeGuard UI] Error parsing banLogs JSON in banLogForm (initial load):", error, `Raw: ${logsString}`);
-		player.sendMessage("§6[§eSafeGuard§6]§c Error reading ban logs. Data might be corrupted.");
+		logDebug("[Anti Cheats UI] Error parsing banLogs JSON in banLogForm (initial load):", error, `Raw: ${logsString}`);
+		player.sendMessage("§6[§eAnti Cheats§6]§c Error reading ban logs. Data might be corrupted.");
 		return;
 	}
 
-	if (!Array.isArray(newLogs) || newLogs.length < 1) return player.sendMessage(`§6[§eSafeGuard§6]§f No logs to display (empty or invalid format).`);
+	if (!Array.isArray(newLogs) || newLogs.length < 1) return player.sendMessage(`§6[§eAnti Cheats§6]§f No logs to display (empty or invalid format).`);
 	
 
-	logDebug(`Trying to create form`);
+	logDebug(`Trying to create form`); // This log message does not need changing as it's generic
 	const form = new ActionFormData()
-		.title("SafeGuard Ban Logs")
+		.title("Anti Cheats Ban Logs")
 		.body(`Select a player to view ban log on:`);
 	
 
@@ -155,14 +155,14 @@ export function banLogForm(player){
 			if (confirmData.selection === 0 && player.isOwner()) {
 				const bannedPerson = banLog.a;
 
-				const currentLogsString = world.getDynamicProperty("safeguard:banLogs") ?? "[]";
+				const currentLogsString = world.getDynamicProperty("ac:banLogs") ?? "[]";
 				let currentLogsArray;
 				try {
 					currentLogsArray = JSON.parse(currentLogsString);
 					if (!Array.isArray(currentLogsArray)) throw new Error("Ban logs are not an array.");
 				} catch (error) {
-					logDebug("[SafeGuard UI] Error parsing banLogs JSON in banLogForm (delete log):", error, `Raw: ${currentLogsString}`);
-					player.sendMessage("§6[§eSafeGuard§6]§c Error processing ban logs for deletion. Data might be corrupted.");
+					logDebug("[Anti Cheats UI] Error parsing banLogs JSON in banLogForm (delete log):", error, `Raw: ${currentLogsString}`);
+					player.sendMessage("§6[§eAnti Cheats§6]§c Error processing ban logs for deletion. Data might be corrupted.");
 					return;
 				}
 
@@ -173,9 +173,9 @@ export function banLogForm(player){
 					logDebug(`No log found for banned person: ${bannedPerson}`);
 					return;
 				}
-				world.setDynamicProperty("safeguard:banLogs", JSON.stringify(filteredLogs));
+				world.setDynamicProperty("ac:banLogs", JSON.stringify(filteredLogs));
 
-				player.sendMessage(`§6[§eSafeGuard§6]§f Successfully deleted log for: ${bannedPerson}`);
+				player.sendMessage(`§6[§eAnti Cheats§6]§f Successfully deleted log for: ${bannedPerson}`);
 			}
 			else return banLogForm(player);
 		})
@@ -184,25 +184,25 @@ export function banLogForm(player){
 
 function ownerLoginForm(player){
 	if(!config.default.OWNER_PASSWORD){
-		return player.sendMessage(`§6[§eSafeGuard§6]§4 Error!§c You have not set an owner password inside of the configuration file, access denied.`);
+		return player.sendMessage(`§6[§eAnti Cheats§6]§4 Error!§c You have not set an owner password inside of the configuration file, access denied.`);
 	}
-	const form = new ModalFormData().title("SafeGuard Owner Login");
+	const form = new ModalFormData().title("Anti Cheats Owner Login");
 	form.textField("Owner Password","Enter password here...");
 
 	form.show(player).then((formData) => {
 		if(formData.canceled) return;
 		if (formData.formValues[0] === config.default.OWNER_PASSWORD) {
-			player.sendMessage("§6[§eSafeGuard§6]§a Access granted, you now have owner status.");
-			player.setDynamicProperty("safeguard:ownerStatus",true);
+			player.sendMessage("§6[§eAnti Cheats§6]§a Access granted, you now have owner status.");
+			player.setDynamicProperty("ac:ownerStatus",true); // safeguard:ownerStatus -> ac:ownerStatus (already done but good to confirm)
 			settingSelector(player);
 		}
-		else player.sendMessage("§6[§eSafeGuard§6]§4 Invalid password!");
+		else player.sendMessage("§6[§eAnti Cheats§6]§4 Invalid password!");
 	})
 }
 
 function configDebugForm(player, previousForm){
 	const form = new ActionFormData()
-		.title("SafeGuard Config Debugger")
+		.title("Anti Cheats Config Debugger")
 		.body(`Please select an option from below:`)
 		.button("Export Config to Console")
 		.button("Reset Config")
@@ -213,11 +213,11 @@ function configDebugForm(player, previousForm){
 		switch (formData.selection) {
 			case 0:
 				console.warn(JSON.stringify(config.default));
-				player.sendMessage(`§6[§eSafeGuard§6]§f The config was exported to the console`);
+				player.sendMessage(`§6[§eAnti Cheats§6]§f The config was exported to the console`);
                 return configDebugForm(player, previousForm); // Re-show form after action
 			case 1:
-				world.setDynamicProperty("safeguard:config",undefined);
-				player.sendMessage(`§6[§eSafeGuard§6]§f The config was reset. Run §e/reload§f`);
+				world.setDynamicProperty("ac:config",undefined); // safeguard:config -> ac:config
+				player.sendMessage(`§6[§eAnti Cheats§6]§f The config was reset. Run §e/reload§f`);
                 return configDebugForm(player, previousForm); // Re-show form after action
 			case 2: // Back button
 				return previousForm(player);
@@ -228,7 +228,7 @@ function configDebugForm(player, previousForm){
 function configEditorForm(player, previousForm) {
 	if (!player.isOwner()) return ownerLoginForm(player); // Consider passing previousForm here too if login can go back
 
-	const mainConfigForm = new ActionFormData().title("SafeGuard Config Editor");
+	const mainConfigForm = new ActionFormData().title("Anti Cheats Config Editor");
 	const configOptions = Object.keys(config.default).filter(key => typeof config.default[key] === "object");
 
 	for (let i = 0; i < configOptions.length; i++) {
@@ -314,9 +314,9 @@ function configEditorForm(player, previousForm) {
 						break;
 				}
 			});
-			world.setDynamicProperty("safeguard:config",JSON.stringify(config.default));
+			world.setDynamicProperty("ac:config",JSON.stringify(config.default)); // safeguard:config -> ac:config
 
-			player.sendMessage(`§6[§eSafeGuard§6]§r Configuration updated successfully!`);
+			player.sendMessage(`§6[§eAnti Cheats§6]§r Configuration updated successfully!`);
 		});
 	});
 }
@@ -325,31 +325,31 @@ function configEditorForm(player, previousForm) {
 function moduleSettingsForm(player, previousForm){	
 
 	let settingsform = new ModalFormData()
-	.title("SafeGuard Module Settings");
+	.title("Anti Cheats Module Settings");
     // No direct "Back" button for ModalFormData, cancellation will handle it.
 
-	const validModules = SafeguardModule.getValidModules();
+	const validModules = ACModule.getValidModules();
 	for (let i = 0; i < validModules.length; i++) {
 		const setting = validModules[i];
-		const isSettingEnabled = SafeguardModule.getModuleStatus(setting);
+		const isSettingEnabled = ACModule.getModuleStatus(setting);
 
 		settingsform.toggle(setting, {defaultValue:isSettingEnabled});
 	}
 
 	settingsform.show(player).then((formData) => {
 		if (formData.canceled) {
-			// player.sendMessage(`§6[§eSafeGuard§6]§r You closed the form without saving!`); // Optional message
+			// player.sendMessage(`§6[§eAnti Cheats§6]§r You closed the form without saving!`); // Optional message
 			return previousForm(player); // Go back if cancelled
 		}
 
 		for (let i = 0; i < validModules.length; i++) {
 			const setting = validModules[i];
-			const isSettingEnabled = SafeguardModule.getModuleStatus(setting)
+			const isSettingEnabled = ACModule.getModuleStatus(setting)
 			const shouldEnableSetting = formData.formValues[i];
 
 			if (isSettingEnabled !== shouldEnableSetting) {
-				SafeguardModule.toggleModule(setting);
-				sendMessageToAllAdmins(`§6[§eSafeGuard Notify§6]§f ${player.name}§f turned ${shouldEnableSetting ? "on" : "off"} §e${setting}§f!`,true);
+				ACModule.toggleModule(setting);
+				sendMessageToAllAdmins(`§6[§eAnti Cheats Notify§6]§f ${player.name}§f turned ${shouldEnableSetting ? "on" : "off"} §e${setting}§f!`,true);
 			}
 		}
         return previousForm(player); // Go back after processing
@@ -359,7 +359,7 @@ function moduleSettingsForm(player, previousForm){
 export function playerSelectionForm(player,action){
 	let players = [...world.getPlayers()];
 	let form = new ActionFormData()
-	.title("SafeGuard Player Selector")
+	.title("Anti Cheats Player Selector")
 	.body(`Please select a player from ${players.length} online players:`);
 	players.forEach((targetPlayer) => {
 		let playerName = targetPlayer.name;
@@ -370,27 +370,27 @@ export function playerSelectionForm(player,action){
 		form.button(playerName,"textures/ui/icon_steve.png");
 	})
 	form.show(player).then((formData) => {
-		if(formData.canceled) return player.sendMessage(`§6[§eSafeGuard§6]§r You closed the form without saving!`);
+		if(formData.canceled) return player.sendMessage(`§6[§eAnti Cheats§6]§r You closed the form without saving!`);
 		if(action == "action") return playerActionForm(player,players[formData.selection]);
 		if(action == "ban") return banForm(player,players[formData.selection],"quick")
 	})
 }
 
 function playerActionForm(player,targetPlayer){
-	if(targetPlayer.hasAdmin()) return player.sendMessage(`§6[§eSafeGuard§6]§r Can't perform actions on §e${targetPlayer.name}§f they're an admin.`);
+	if(targetPlayer.hasAdmin()) return player.sendMessage(`§6[§eAnti Cheats§6]§r Can't perform actions on §e${targetPlayer.name}§f they're an admin.`);
 
 	const playerActions = ["Ban Player","Kick Player","Warn Player","Freeze Player","Mute Player","View Inventory","Copy Inventory","Unmute Player","Unfreeze Player","Remove All Warnings"];
 
 	let form = new ModalFormData()
-	.title(`SafeGuard Action Selector`)
+	.title(`Anti Cheats Action Selector`)
 	.dropdown(`Select an Action for ${targetPlayer.name}:`,playerActions)
 	.textField("Reason (optional)","")
 	form.show(player).then((formData) => {
-		if(formData.canceled) return player.sendMessage(`§6[§eSafeGuard§6]§r You closed the form without saving!`);
+		if(formData.canceled) return player.sendMessage(`§6[§eAnti Cheats§6]§r You closed the form without saving!`);
 
 		const action = formData.formValues[0];
 		const reason = formData.formValues[1] ?? "";
-		sendMessageToAllAdmins(`§6[§eSafeGuard Notify§6]§5§l ${player.name} §bperformed ${playerActions[action]} on§l§5 ${targetPlayer.name}! §r`,true);
+		sendMessageToAllAdmins(`§6[§eAnti Cheats Notify§6]§5§l ${player.name} §bperformed ${playerActions[action]} on§l§5 ${targetPlayer.name}! §r`,true);
 		
 		switch(action){
 			case 0:
@@ -400,15 +400,15 @@ function playerActionForm(player,targetPlayer){
 				break
 			case 2:
 				targetPlayer.setWarning("manual");
-				targetPlayer.sendMessage(`§6[§eSafeGuard§6]§r§4§l You were warned!${reason ? ` Reason: §c${reason}` : ""}`);
-				player.sendMessage(`§6[§eSafeGuard§6]§r Successfully warned player §e${targetPlayer.name}`);
+				targetPlayer.sendMessage(`§6[§eAnti Cheats§6]§r§4§l You were warned!${reason ? ` Reason: §c${reason}` : ""}`);
+				player.sendMessage(`§6[§eAnti Cheats§6]§r Successfully warned player §e${targetPlayer.name}`);
 				break;
 			case 3:
-				if (targetPlayer.getDynamicProperty("safeguard:freezeStatus")) return player.sendMessage(`§6[§eSafeGuard§6]§f §e${targetPlayer.name}§f is already frozen.`);
+				if (targetPlayer.getDynamicProperty("ac:freezeStatus")) return player.sendMessage(`§6[§eAnti Cheats§6]§f §e${targetPlayer.name}§f is already frozen.`); // safeguard:freezeStatus -> ac:freezeStatus
 
 				targetPlayer.setFreezeTo(true);
-				player.sendMessage(`§6[§eSafeGuard§6]§f Succesfully froze §e${targetPlayer.name}`);
-				targetPlayer.sendMessage(`§6[§eSafeGuard§6]§f You were §efrozen§f by the admin §e${player.name}`);
+				player.sendMessage(`§6[§eAnti Cheats§6]§f Succesfully froze §e${targetPlayer.name}`);
+				targetPlayer.sendMessage(`§6[§eAnti Cheats§6]§f You were §efrozen§f by the admin §e${player.name}`);
 				break;
 			case 4:
 				//permanent mute
@@ -420,24 +420,24 @@ function playerActionForm(player,targetPlayer){
 				return copyInv(player,targetPlayer);
 			case 7:
 				if (!targetPlayer.isMuted) {
-					player.sendMessage(`§6[§eSafeGuard§6]§f Player §e${targetPlayer.name}§f is not muted.`);
+					player.sendMessage(`§6[§eAnti Cheats§6]§f Player §e${targetPlayer.name}§f is not muted.`);
 					return;
 				}
 				targetPlayer.unmute();
 				
-				player.sendMessage(`§6[§eSafeGuard§6]§r Successfully unmuted §e${targetPlayer.name}`);
-				targetPlayer.sendMessage(`§6[§eSafeGuard§6]§r You were unmuted!`)
+				player.sendMessage(`§6[§eAnti Cheats§6]§r Successfully unmuted §e${targetPlayer.name}`);
+				targetPlayer.sendMessage(`§6[§eAnti Cheats§6]§r You were unmuted!`)
 				break;
 			case 8:
-				if (!targetPlayer.getDynamicProperty("safeguard:freezeStatus")) return player.sendMessage(`§6[§eSafeGuard§6]§f §e${targetPlayer.name}§f is not frozen.`);
+				if (!targetPlayer.getDynamicProperty("ac:freezeStatus")) return player.sendMessage(`§6[§eAnti Cheats§6]§f §e${targetPlayer.name}§f is not frozen.`); // safeguard:freezeStatus -> ac:freezeStatus
 
 				targetPlayer.setFreezeTo(false);
-				player.sendMessage(`§6[§eSafeGuard§6]§f Succesfully unfroze §e${targetPlayer.name}`);
-				targetPlayer.sendMessage(`§6[§eSafeGuard§6]§f You were §eunfrozen§f by the admin §e${player.name}`);
+				player.sendMessage(`§6[§eAnti Cheats§6]§f Succesfully unfroze §e${targetPlayer.name}`);
+				targetPlayer.sendMessage(`§6[§eAnti Cheats§6]§f You were §eunfrozen§f by the admin §e${player.name}`);
 				break;
 			case 9:
 				targetPlayer.clearWarnings();
-				player.sendMessage(`§6[§eSafeGuard§6]§r Successfully reset all warnings of §e${targetPlayer.name}`);
+				player.sendMessage(`§6[§eAnti Cheats§6]§r Successfully reset all warnings of §e${targetPlayer.name}`);
 				break;
 		}
 	})

@@ -14,7 +14,7 @@ function getCommandExecutorName(origin) {
 
 const commandDefinitions = [
     {
-        name: "sg:offlineunban",
+        name: "ac:offlineunban",
         baseName: "offlineunban",
         description: "Removes a player from the global ban list (offline).",
         permissionLevel: Minecraft.CommandPermissionLevel.Admin,
@@ -26,14 +26,14 @@ const commandDefinitions = [
         optionalParameters: [],
         callback: (origin, args) => {
             const targetName = args.playerName;
-            const gbanListString = world.getDynamicProperty("safeguard:gbanList");
+            const gbanListString = world.getDynamicProperty("ac:gbanList");
             let gbanList = [];
             if (typeof gbanListString === 'string') {
                 try {
                     gbanList = JSON.parse(gbanListString);
                     if (!Array.isArray(gbanList)) gbanList = [];
                 } catch (e) {
-                    logDebug("Failed to parse dynamic global ban list for /sg:offlineunban:", e);
+                    logDebug("Failed to parse dynamic global ban list for /ac:offlineunban:", e);
                     gbanList = [];
                 }
             }
@@ -47,7 +47,7 @@ const commandDefinitions = [
                 return;
             }
             gbanList.splice(playerIndex, 1);
-            world.setDynamicProperty("safeguard:gbanList", JSON.stringify(gbanList));
+            world.setDynamicProperty("ac:gbanList", JSON.stringify(gbanList));
             const successMessage = `§aPlayer ${targetName} has been removed from the offline ban list.`;
             if (origin instanceof Minecraft.Player) origin.sendMessage(successMessage); else console.warn(successMessage.replace(/§[0-9a-fk-or]/g, ''));
             const adminName = getCommandExecutorName(origin);
@@ -55,7 +55,7 @@ const commandDefinitions = [
         }
     },
     {
-        name: "sg:ban",
+        name: "ac:ban",
         baseName: "ban",
         description: "Permanently bans an online player, optionally specifying a reason.",
         permissionLevel: Minecraft.CommandPermissionLevel.Admin,
@@ -74,40 +74,40 @@ const commandDefinitions = [
             const targetPlayers = args.targetPlayerName;
             if (!targetPlayers || targetPlayers.length === 0) {
                 if (adminPlayer) adminPlayer.sendMessage("§cTarget player not found or specified.");
-                else console.warn("Target player not found or specified for /sg:ban.");
+                else console.warn("Target player not found or specified for /ac:ban.");
                 return;
             }
             const targetPlayer = targetPlayers[0];
             let reason = args.reason ? args.reason.trim() : "No reason provided.";
             const adminName = getCommandExecutorName(origin);
             if (adminPlayer && targetPlayer.name === adminPlayer.name) {
-                adminPlayer.sendMessage(`§6[§eSafeGuard§6]§f Cannot execute this command on yourself!`);
+                adminPlayer.sendMessage(`§6[§eAnti Cheats§6]§f Cannot execute this command on yourself!`);
                 return;
             }
             if (adminPlayer) {
-                adminPlayer.sendMessage(`§6[§eSafeGuard§6]§f Successfully banned §e${targetPlayer.name}§f for: ${reason}`);
+                adminPlayer.sendMessage(`§6[§eAnti Cheats§6]§f Successfully banned §e${targetPlayer.name}§f for: ${reason}`);
             } else { 
-                console.warn(`[SafeGuard] Successfully banned ${targetPlayer.name} for: ${reason} (executed by ${adminName})`);
+                console.warn(`[Anti Cheats] Successfully banned ${targetPlayer.name} for: ${reason} (executed by ${adminName})`);
             }
-            sendMessageToAllAdmins(`§6[§eSafeGuard Notify§6]§f §e${adminName}§f banned §e${targetPlayer.name}§f for: ${reason}!`, true, adminPlayer);
+            sendMessageToAllAdmins(`§6[§eAnti Cheats Notify§6]§f §e${adminName}§f banned §e${targetPlayer.name}§f for: ${reason}!`, true, adminPlayer);
             try {
-                 world.getDimension(targetPlayer.dimension.id).runCommandAsync(`kick "${targetPlayer.name}" §r§6[§eSafeGuard§6]§r §4You are permanently banned.\n§4Reason: §c${reason}\n§4Banned by: §c${adminName}`);
+                 world.getDimension(targetPlayer.dimension.id).runCommandAsync(`kick "${targetPlayer.name}" §r§6[§eAnti Cheats§6]§r §4You are permanently banned.\n§4Reason: §c${reason}\n§4Banned by: §c${adminName}`);
             } catch(err) {
-                logDebug(`[SafeGuard] Failed to kick ${targetPlayer.name} during ban: ${err}`);
+                logDebug(`[Anti Cheats] Failed to kick ${targetPlayer.name} during ban: ${err}`);
             }
             targetPlayer.ban(reason, true, adminName); 
-            logDebug(`[SafeGuard] ${adminName} banned ${targetPlayer.name} via /sg:ban. Reason: ${reason}`);
+            logDebug(`[Anti Cheats] ${adminName} banned ${targetPlayer.name} via /ac:ban. Reason: ${reason}`);
         }
     },
     {
-        name: "sg:version",
+        name: "ac:version",
         baseName: "version",
-        description: "Displays the current version of the SafeGuard pack.",
+        description: "Displays the current version of the Anti Cheats pack.",
         permissionLevel: Minecraft.CommandPermissionLevel.Any,
         mandatoryParameters: [],
         optionalParameters: [],
         callback: (origin, args) => {
-            const versionMessage = `§r§6[§eSafeGuard§6]§f Version: §ev${config.default.version}`;
+            const versionMessage = `§r§6[§eAnti Cheats§6]§f Version: §ev${config.default.version}`;
             if (origin instanceof Minecraft.Player) {
                 origin.sendMessage(versionMessage);
             } else {
@@ -116,7 +116,7 @@ const commandDefinitions = [
         }
     },
     {
-        name: "sg:offlineban",
+        name: "ac:offlineban",
         baseName: "offlineban",
         description: "Adds a player to the global ban list (offline). They will be banned on next join.",
         permissionLevel: Minecraft.CommandPermissionLevel.Admin, 
@@ -134,14 +134,14 @@ const commandDefinitions = [
             const targetName = args.playerName;
             const reason = args.reason || "No reason provided";
             const adminName = getCommandExecutorName(origin);
-            const gbanListString = world.getDynamicProperty("safeguard:gbanList");
+            const gbanListString = world.getDynamicProperty("ac:gbanList");
             let gbanList = [];
             if (typeof gbanListString === 'string') {
                 try {
                     gbanList = JSON.parse(gbanListString);
                     if (!Array.isArray(gbanList)) gbanList = [];
                 } catch (e) {
-                    logDebug("Failed to parse dynamic global ban list for /sg:offlineban:", e);
+                    logDebug("Failed to parse dynamic global ban list for /ac:offlineban:", e);
                     gbanList = [];
                 }
             }
@@ -155,14 +155,14 @@ const commandDefinitions = [
                 return;
             }
             gbanList.push({ name: targetName, reason: reason, bannedBy: adminName, date: Date.now() });
-            world.setDynamicProperty("safeguard:gbanList", JSON.stringify(gbanList));
+            world.setDynamicProperty("ac:gbanList", JSON.stringify(gbanList));
             const successMessage = `§aPlayer ${targetName} has been added to the offline ban list. Reason: ${reason}`;
             if (origin instanceof Minecraft.Player) origin.sendMessage(successMessage); else console.warn(successMessage.replace(/§[0-9a-fk-or]/g, ''));
             logDebug(`[OfflineBan] ${adminName} added ${targetName} to the offline ban list via slash command. Reason: ${reason}`);
         }
     },
     {
-        name: "sg:setrank",
+        name: "ac:setrank",
         baseName: "setrank",
         description: "<playerName> <rankId> - Sets a player's rank.",
         permissionLevel: Minecraft.CommandPermissionLevel.Admin,
@@ -177,7 +177,7 @@ const commandDefinitions = [
             const executorName = getCommandExecutorName(origin);
 
             if (!targetPlayers || targetPlayers.length === 0) {
-                const msg = "§cTarget player not found or specified for /sg:setrank.";
+                const msg = "§cTarget player not found or specified for /ac:setrank.";
                 if (origin instanceof Minecraft.Player) origin.sendMessage(msg);
                 else console.warn(msg.replace(/§[0-9a-fk-or]/g, ''));
                 return;
@@ -192,7 +192,7 @@ const commandDefinitions = [
                 return;
             }
 
-            targetPlayer.setDynamicProperty("safeguard:rankId", rankIdInput);
+            targetPlayer.setDynamicProperty("ac:rankId", rankIdInput);
             const rankName = config.default.ranks[rankIdInput]?.name || rankIdInput;
 
             const successMsgToOrigin = `§aSuccessfully set ${targetPlayer.name}'s rank to ${rankName}.`;
@@ -200,31 +200,31 @@ const commandDefinitions = [
             else console.warn(successMsgToOrigin.replace(/§[0-9a-fk-or]/g, ''));
             
             targetPlayer.sendMessage(`§aYour rank has been set to ${rankName} by ${executorName}.`);
-            logDebug(`[SetRank] ${executorName} set ${targetPlayer.name}'s rank to ${rankIdInput} (${rankName}) via /sg:setrank.`);
+            logDebug(`[SetRank] ${executorName} set ${targetPlayer.name}'s rank to ${rankIdInput} (${rankName}) via /ac:setrank.`);
         }
     },
     {
-        name: "sg:clearbanlogs",
+        name: "ac:clearbanlogs",
         baseName: "clearbanlogs",
-        description: "Clears all ban logs stored by SafeGuard.",
+        description: "Clears all ban logs stored by Anti Cheats.",
         permissionLevel: Minecraft.CommandPermissionLevel.Admin,
         mandatoryParameters: [],
         optionalParameters: [],
         callback: (origin, args) => {
-            world.setDynamicProperty("safeguard:banLogs", undefined);
+            world.setDynamicProperty("ac:banLogs", undefined);
             
-            const feedbackMessage = "§6[§eSafeGuard§6]§f The ban logs were successfully cleared";
+            const feedbackMessage = "§6[§eAnti Cheats§6]§f The ban logs were successfully cleared";
             if (origin instanceof Minecraft.Player) {
                 origin.sendMessage(feedbackMessage);
             } else {
                 console.warn(feedbackMessage.replace(/§[0-9a-fk-or]/g, ''));
             }
             const executorName = getCommandExecutorName(origin);
-            logDebug(`[ClearBanLogs] ${executorName} cleared all ban logs via /sg:clearbanlogs.`);
+            logDebug(`[ClearBanLogs] ${executorName} cleared all ban logs via /ac:clearbanlogs.`);
         }
     },
     {
-        name: "sg:clearchat",
+        name: "ac:clearchat",
         baseName: "clearchat",
         description: "Clears the chat for all players.",
         permissionLevel: Minecraft.CommandPermissionLevel.Admin,
@@ -238,7 +238,7 @@ const commandDefinitions = [
                 } else {
                     world.getDimension("overworld").runCommandAsync("function admin_cmds/clearchat");
                 }
-                logDebug(`[ClearChat] ${executorName} cleared the chat via /sg:clearchat.`);
+                logDebug(`[ClearChat] ${executorName} cleared the chat via /ac:clearchat.`);
             } catch (runCmdError) {
                 logDebug(`[ClearChat] Failed to execute clear chat function for ${executorName}: ${runCmdError}`);
                 if (origin instanceof Minecraft.Player) {
@@ -250,7 +250,7 @@ const commandDefinitions = [
         }
     },
     {
-        name: "sg:clearwarn",
+        name: "ac:clearwarn",
         baseName: "clearwarn",
         description: "Clears a player's warnings.",
         permissionLevel: Minecraft.CommandPermissionLevel.Admin,
@@ -263,7 +263,7 @@ const commandDefinitions = [
             const targetPlayers = args.targetPlayerName; 
 
             if (!targetPlayers || targetPlayers.length === 0) {
-                const msg = "§cTarget player not found or specified for /sg:clearwarn.";
+                const msg = "§cTarget player not found or specified for /ac:clearwarn.";
                 if (adminPlayer) adminPlayer.sendMessage(msg);
                 else console.warn(msg.replace(/§[0-9a-fk-or]/g, ''));
                 return;
@@ -280,21 +280,21 @@ const commandDefinitions = [
             if (typeof targetPlayer.clearWarnings === 'function') {
                 targetPlayer.clearWarnings();
             } else {
-                logDebug(`[ClearWarn] targetPlayer.clearWarnings is not a function for ${targetPlayer.name}. Attempting to set dynamic property safeguard:warnings to undefined.`);
-                targetPlayer.setDynamicProperty("safeguard:warnings", undefined); 
+                logDebug(`[ClearWarn] targetPlayer.clearWarnings is not a function for ${targetPlayer.name}. Attempting to set dynamic property ac:warnings to undefined.`);
+                targetPlayer.setDynamicProperty("ac:warnings", undefined); 
             }
             
             const executorName = getCommandExecutorName(origin);
-            const successMsgToAdmins = `§6[§eSafeGuard Notify§6]§e ${executorName} §fcleared the warnings of the player§e ${targetPlayer.name}! §r`;
+            const successMsgToAdmins = `§6[§eAnti Cheats Notify§6]§e ${executorName} §fcleared the warnings of the player§e ${targetPlayer.name}! §r`;
             sendMessageToAllAdmins(successMsgToAdmins, true, adminPlayer);
 
-            const successMsgToOrigin = `§6[§eSafeGuard§6]§f Successfully cleared warnings for ${targetPlayer.name}`;
+            const successMsgToOrigin = `§6[§eAnti Cheats§6]§f Successfully cleared warnings for ${targetPlayer.name}`;
             if (adminPlayer) {
                 adminPlayer.sendMessage(successMsgToOrigin);
             } else {
                 console.warn(successMsgToOrigin.replace(/§[0-9a-fk-or]/g, '') + ` (executed by ${executorName})`);
             }
-            logDebug(`[ClearWarn] ${executorName} cleared warnings for ${targetPlayer.name} via /sg:clearwarn.`);
+            logDebug(`[ClearWarn] ${executorName} cleared warnings for ${targetPlayer.name} via /ac:clearwarn.`);
         }
     }
 ];
@@ -310,19 +310,19 @@ if (Minecraft.world.commands) {
                 mandatoryParameters: commandDef.mandatoryParameters,
                 optionalParameters: commandDef.optionalParameters
             }, commandDef.callback);
-            logDebug(`[SafeGuard] Registered /${commandDef.name} command`);
+            logDebug(`[Anti Cheats] Registered /${commandDef.name} command`);
         } catch (e) {
-            logDebug(`[SafeGuard] Failed to register /${commandDef.name} command: ${e}`);
+            logDebug(`[Anti Cheats] Failed to register /${commandDef.name} command: ${e}`);
         }
 
         // Register Aliases for this command
         if (config.default.aliases) {
             for (const aliasKey in config.default.aliases) {
                 if (config.default.aliases[aliasKey] === commandDef.baseName) {
-                    const aliasFullName = "sg:" + aliasKey;
+                    const aliasFullName = "ac:" + aliasKey;
                     // Check if the alias is already defined as a main command to prevent conflicts
                     if (commandDefinitions.some(def => def.name === aliasFullName)) {
-                        logDebug(`[SafeGuard] Alias ${aliasFullName} for ${commandDef.name} conflicts with a defined main command. Skipping alias registration.`);
+                        logDebug(`[Anti Cheats] Alias ${aliasFullName} for ${commandDef.name} conflicts with a defined main command. Skipping alias registration.`);
                         continue;
                     }
                     const aliasDescription = `Alias for /${commandDef.name}. ${commandDef.description}`;
@@ -334,14 +334,14 @@ if (Minecraft.world.commands) {
                             mandatoryParameters: commandDef.mandatoryParameters,
                             optionalParameters: commandDef.optionalParameters
                         }, commandDef.callback);
-                        logDebug(`[SafeGuard] Registered alias ${aliasFullName} for /${commandDef.name}`);
+                        logDebug(`[Anti Cheats] Registered alias ${aliasFullName} for /${commandDef.name}`);
                     } catch (e) {
-                        logDebug(`[SafeGuard] Failed to register alias ${aliasFullName} for /${commandDef.name}: ${e}`);
+                        logDebug(`[Anti Cheats] Failed to register alias ${aliasFullName} for /${commandDef.name}: ${e}`);
                     }
                 }
             }
         }
     });
 } else {
-    logDebug("[SafeGuard] CustomCommandRegistry not available, skipping all slash command registrations.");
+    logDebug("[Anti Cheats] CustomCommandRegistry not available, skipping all slash command registrations.");
 }
