@@ -28,7 +28,12 @@ function banForm(player,targetPlayer,type,banReason){
 				
 			}
 			else return player.sendMessage(`§6[§eAnti Cheats§6]§f Cancelled`);
-		})
+		}).catch(e => {
+			logDebug(`[Anti Cheats UI Error][banFormQuick]: ${e} ${e.stack}`);
+			if (player && typeof player.sendMessage === 'function') {
+				player.sendMessage("§cAn error occurred with the UI. Please try again.");
+			}
+		});
 	}
 	else if(type=="slow"){
 		let banForm = new ModalFormData()
@@ -59,7 +64,12 @@ function banForm(player,targetPlayer,type,banReason){
 			if (isPermanent) player.runCommand(`kick "${targetPlayer.name}" §r§6[§eAnti Cheats§6]§r §4You are permanently banned.\n§4Reason: §c${banReason == "" ? "No reason provided." : banReason}\n§4Banned by: §c${player.name}`)
 			
 
-		})
+		}).catch(e => {
+			logDebug(`[Anti Cheats UI Error][banFormSlow]: ${e} ${e.stack}`);
+			if (player && typeof player.sendMessage === 'function') {
+				player.sendMessage("§cAn error occurred with the UI. Please try again.");
+			}
+		});
 	}
 	else{
 		return player.sendMessage(`§6[§eAnti Cheats§6]§r§c§lERROR:§4 Unexpected type of ban: §c${type}`)
@@ -79,7 +89,12 @@ export function unbanForm(player){
 		const playerName = formData.formValues[0];
 		
 		addPlayerToUnbanQueue(player,playerName);
-	})
+	}).catch(e => {
+		logDebug(`[Anti Cheats UI Error][unbanForm]: ${e} ${e.stack}`);
+		if (player && typeof player.sendMessage === 'function') {
+			player.sendMessage("§cAn error occurred with the UI. Please try again.");
+		}
+	});
 }
 
 export function settingSelector(player){
@@ -104,7 +119,12 @@ export function settingSelector(player){
 			case 2:
 				return configDebugForm(player, settingSelector);
 		}
-	})
+	}).catch(e => {
+		logDebug(`[Anti Cheats UI Error][settingSelector]: ${e} ${e.stack}`);
+		if (player && typeof player.sendMessage === 'function') {
+			player.sendMessage("§cAn error occurred with the UI. Please try again.");
+		}
+	});
 }
 export function banLogForm(player){
 	const logsString = world.getDynamicProperty("ac:banLogs");
@@ -178,8 +198,18 @@ export function banLogForm(player){
 				player.sendMessage(`§6[§eAnti Cheats§6]§f Successfully deleted log for: ${bannedPerson}`);
 			}
 			else return banLogForm(player);
-		})
-	})
+		}).catch(e => {
+			logDebug(`[Anti Cheats UI Error][banLogFormConfirm]: ${e} ${e.stack}`);
+			if (player && typeof player.sendMessage === 'function') {
+				player.sendMessage("§cAn error occurred with the UI. Please try again.");
+			}
+		});
+	}).catch(e => {
+		logDebug(`[Anti Cheats UI Error][banLogFormInitial]: ${e} ${e.stack}`);
+		if (player && typeof player.sendMessage === 'function') {
+			player.sendMessage("§cAn error occurred with the UI. Please try again.");
+		}
+	});
 }
 
 function ownerLoginForm(player){
@@ -197,7 +227,12 @@ function ownerLoginForm(player){
 			settingSelector(player);
 		}
 		else player.sendMessage("§6[§eAnti Cheats§6]§4 Invalid password!");
-	})
+	}).catch(e => {
+		logDebug(`[Anti Cheats UI Error][ownerLoginForm]: ${e} ${e.stack}`);
+		if (player && typeof player.sendMessage === 'function') {
+			player.sendMessage("§cAn error occurred with the UI. Please try again.");
+		}
+	});
 }
 
 function configDebugForm(player, previousForm){
@@ -222,7 +257,12 @@ function configDebugForm(player, previousForm){
 			case 2: // Back button
 				return previousForm(player);
 		}
-	})
+	}).catch(e => {
+		logDebug(`[Anti Cheats UI Error][configDebugForm]: ${e} ${e.stack}`);
+		if (player && typeof player.sendMessage === 'function') {
+			player.sendMessage("§cAn error occurred with the UI. Please try again.");
+		}
+	});
 }
 
 function configEditorForm(player, previousForm) {
@@ -317,7 +357,17 @@ function configEditorForm(player, previousForm) {
 			world.setDynamicProperty("ac:config",JSON.stringify(config.default)); // safeguard:config -> ac:config
 
 			player.sendMessage(`§6[§eAnti Cheats§6]§r Configuration updated successfully!`);
+		}).catch(e => {
+			logDebug(`[Anti Cheats UI Error][configEditorFormModuleOptions]: ${e} ${e.stack}`);
+			if (player && typeof player.sendMessage === 'function') {
+				player.sendMessage("§cAn error occurred with the UI. Please try again.");
+			}
 		});
+	}).catch(e => {
+		logDebug(`[Anti Cheats UI Error][configEditorFormMain]: ${e} ${e.stack}`);
+		if (player && typeof player.sendMessage === 'function') {
+			player.sendMessage("§cAn error occurred with the UI. Please try again.");
+		}
 	});
 }
 
@@ -353,6 +403,11 @@ function moduleSettingsForm(player, previousForm){
 			}
 		}
         return previousForm(player); // Go back after processing
+	}).catch(e => {
+		logDebug(`[Anti Cheats UI Error][moduleSettingsForm]: ${e} ${e.stack}`);
+		if (player && typeof player.sendMessage === 'function') {
+			player.sendMessage("§cAn error occurred with the UI. Please try again.");
+		}
 	});
 }
 
@@ -373,7 +428,12 @@ export function playerSelectionForm(player,action){
 		if(formData.canceled) return player.sendMessage(`§6[§eAnti Cheats§6]§r You closed the form without saving!`);
 		if(action == "action") return playerActionForm(player,players[formData.selection]);
 		if(action == "ban") return banForm(player,players[formData.selection],"quick")
-	})
+	}).catch(e => {
+		logDebug(`[Anti Cheats UI Error][playerSelectionForm]: ${e} ${e.stack}`);
+		if (player && typeof player.sendMessage === 'function') {
+			player.sendMessage("§cAn error occurred with the UI. Please try again.");
+		}
+	});
 }
 
 function playerActionForm(player,targetPlayer){
@@ -440,5 +500,10 @@ function playerActionForm(player,targetPlayer){
 				player.sendMessage(`§6[§eAnti Cheats§6]§r Successfully reset all warnings of §e${targetPlayer.name}`);
 				break;
 		}
-	})
+	}).catch(e => {
+		logDebug(`[Anti Cheats UI Error][playerActionForm]: ${e} ${e.stack}`);
+		if (player && typeof player.sendMessage === 'function') {
+			player.sendMessage("§cAn error occurred with the UI. Please try again.");
+		}
+	});
 }
