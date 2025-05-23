@@ -116,20 +116,36 @@
             {
               "id": "VI.5.1",
               "title": "Review current banLogForm and identify areas for enhancement",
-              "status": "pending"
+              "status": "completed",
+              "sub_tasks": [
+                {
+                  "id": "VI.5.1.1",
+                  "title": "Analysis of banLogForm and Enhancement Opportunities",
+                  "status": "completed",
+                  "details": "Retrieves logs from 'ac:banLogs' (dynamic property). Initial list (ActionFormData) shows only player name (log.a) and total count. Detailed view (MessageFormData) shows banner (log.b), time (log.c as locale string), reason (log.d). Navigation: List has 'Back' to main panel. Detail view returns to list. Limitations: Initial list lacks context (date/banner). ActionFormData button limit means not all logs may be visible if list is very long. Log Deletion Flaw: Deletes all logs for a player name (log.a) instead of the specific selected entry. Enhancements: 1. Initial list: Try adding date/banner to button text (e.g., 'Player - MM/DD - Admin'). 2. Log Deletion: CRITICAL - Fix deletion to be specific to the selected log, possibly using timestamp `log.c` for uniqueness or by filtering the exact object from the array if possible. 3. Data Structure: Consider adding unique IDs to log entries in the future for robustness. 4. UI for many logs: For very long lists, pagination or a different UI pattern might be needed (major change, future consideration)."
+                }
+              ]
             },
             {
               "id": "VI.5.2",
-              "title": "Implement UI changes for enhanced log display (e.g., more details, better navigation)",
-              "status": "pending"
+              "title": "CRITICAL FIX: Correct banLogForm log deletion logic",
+              "status": "pending",
+              "details": "Current logic deletes all logs for a player's name, not just the selected entry. This needs to be fixed by associating a unique identifier with each log entry if possible, or by ensuring only the specific selected log instance is removed.",
+              "priority": "High"
             },
             {
               "id": "VI.5.3",
-              "title": "Consider and implement filtering/sorting options if feasible",
-              "status": "pending"
+              "title": "Implement UI changes for enhanced ban log display",
+              "status": "pending",
+              "details": "Based on analysis VI.5.1.1: Enhance initial list to show more info (e.g., date, admin). Improve structure of detailed view. Address ActionFormData button limits if immediately problematic (e.g., by truncating list or warning if too many logs)."
             },
             {
               "id": "VI.5.4",
+              "title": "Consider and implement filtering/sorting options for ban logs",
+              "status": "pending"
+            },
+            {
+              "id": "VI.5.5",
               "title": "Explore adding other log types (e.g., command usage, server events) if data is accessible",
               "status": "pending"
             }
