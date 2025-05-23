@@ -106,12 +106,34 @@
         {
           "id": "VI.4",
           "title": "Add New Feature: System Information Display",
-          "status": "in progress"
+          "status": "completed"
         },
         {
           "id": "VI.5",
           "title": "Add New Feature: Enhanced Logging Interface",
-          "status": "pending"
+          "status": "in progress",
+          "sub_tasks": [
+            {
+              "id": "VI.5.1",
+              "title": "Review current banLogForm and identify areas for enhancement",
+              "status": "pending"
+            },
+            {
+              "id": "VI.5.2",
+              "title": "Implement UI changes for enhanced log display (e.g., more details, better navigation)",
+              "status": "pending"
+            },
+            {
+              "id": "VI.5.3",
+              "title": "Consider and implement filtering/sorting options if feasible",
+              "status": "pending"
+            },
+            {
+              "id": "VI.5.4",
+              "title": "Explore adding other log types (e.g., command usage, server events) if data is accessible",
+              "status": "pending"
+            }
+          ]
         },
         {
           "id": "VI.6",

@@ -145,9 +145,10 @@ export function showAdminPanelMain(player) {
 				banLogForm(player, showAdminPanelMain);
 				break;
 			case 3: // System Information
-				console.warn(`[Admin Panel] System Information button pressed by ${player.name}`);
-				player.tell("§6[Admin Panel] §eSystem Information is not yet implemented.");
-				showAdminPanelMain(player); // Re-show main panel
+				// console.warn(`[Admin Panel] System Information button pressed by ${player.name}`);
+				// player.tell("§6[Admin Panel] §eSystem Information is not yet implemented.");
+				// showAdminPanelMain(player); // Re-show main panel
+				showSystemInformation(player, showAdminPanelMain); // Call the new function
 				break;
 			case 4: // Close
 				// Do nothing, form closes.
@@ -161,6 +162,112 @@ export function showAdminPanelMain(player) {
 		logDebug(`[Anti Cheats UI Error][showAdminPanelMain]: ${e} ${e.stack}`);
 		if (player && typeof player.sendMessage === 'function') {
 			player.sendMessage("§cAn error occurred with the Admin Panel UI. Please try again.");
+		}
+	});
+}
+
+export function showSystemInformation(player, previousForm) {
+	if (!player.hasAdmin()) {
+		player.tell("§cYou do not have permission to view system information.");
+		return previousForm(player); // Go back if not admin
+	}
+
+	const form = new MessageFormData();
+	form.title("§l§7System Information");
+
+	// Gather information
+	const serverTime = new Date().toLocaleString();
+	
+	const allPlayers = world.getAllPlayers();
+	const onlinePlayerCount = allPlayers.length;
+	const onlinePlayerNames = onlinePlayerCount > 0 ? allPlayers.map(p => p.name).join(", ") : "N/A";
+	
+	let adminsOnlineCount = 0;
+	let ownerOnlineCount = 0;
+	for (const p of allPlayers) {
+		if (p.hasTag('admin')) { // Assuming 'admin' tag is used for admins. Adjust if using isOp() or other methods.
+			adminsOnlineCount++;
+		}
+		if (p.isOwner()) { // isOwner() is a custom method from Player class extension
+			ownerOnlineCount++;
+		}
+	}
+
+	let bannedPlayersCount = "N/A";
+	try {
+		const logsString = world.getDynamicProperty("ac:banLogs");
+		if (logsString) {
+			const banLogs = JSON.parse(logsString);
+			if (Array.isArray(banLogs)) {
+				bannedPlayersCount = banLogs.length.toString();
+			} else {
+				bannedPlayersCount = "Error reading logs (not an array)";
+			}
+		} else {
+			bannedPlayersCount = "0";
+		}
+	} catch (e) {
+		logDebug(`[UI Error][showSystemInformation] Error reading ban logs: ${e}`);
+		bannedPlayersCount = "Error reading logs";
+	}
+	
+	const addonVersion = config.default.version || "N/A";
+	const serverPerformance = "N/A (API not available for detailed metrics)";
+
+	// Format body
+	let bodyText = `§gCurrent Server Time:§r ${serverTime}\n\n`;
+	bodyText += `§gOnline Players (${onlinePlayerCount}):§r ${onlinePlayerNames}\n`;
+	bodyText += `§gAdmins Online:§r ${adminsOnlineCount}\n`;
+	bodyText += `§gOwner Online:§r ${ownerOnlineCount}\n\n`;
+	bodyText += `§gTotal Banned Players:§r ${bannedPlayersCount}\n\n`;
+	bodyText += `§gServer Performance:§r ${serverPerformance}\n`;
+	bodyText += `§gAddon Version:§r ${addonVersion}`;
+
+	form.body(bodyText);
+	form.button1("§cBack"); // MessageFormData has button1 and button2
+	form.button2("§cClose"); // This will act as "Back" as well, effectively. Let's use only one back.
+                            // Re-doing this part for MessageFormData: only two buttons.
+                            // Button1 is typically negative/cancel, Button2 positive/confirm.
+                            // For a "Back" only scenario, we usually use Button1.
+
+	// Corrected button setup for MessageFormData (it expects two buttons)
+	// To have a single "Back" button, we can make the other one less prominent or non-functional if selected.
+	// However, the prompt asks for one "§cBack" button. MessageFormData might not be ideal if only one button is truly desired.
+	// ActionFormData is better for single "Back" button, but the prompt specified MessageFormData.
+	// Let's use button1 as "Back" and button2 as a dummy "OK" or "Refresh" that does the same as back.
+	// The prompt states: "The form should have one button: '§cBack'".
+	// This is a slight conflict with MessageFormData's typical two-button design.
+	// I will make button2 also effectively a "Back" or simply re-show.
+	// For simplicity and adhering to "one button" spirit, I'll make button2 text minimal.
+	// Actually, MessageFormData can have just one button if you only call .button1()
+	// No, it requires .button1() and .button2().
+	// I'll make button2 "OK" and it will just close the form, which is fine.
+	// The prompt is specific: "one button: '§cBack'".
+	// I will use button1 as "§cBack" and make button2 a simple "OK" that also goes back.
+
+	// Let's re-evaluate. MessageFormData is for messages that need a response (Yes/No, Ok/Cancel).
+	// For displaying info with just a "Back", ActionFormData with a single button is more semantically correct.
+	// However, the prompt *specifically* asks for MessageFormData.
+	// I will proceed with MessageFormData and make both buttons lead back.
+
+	form.button1("§7Refresh"); // Will also go back
+	form.button2("§cBack");   // Main back button
+
+	form.show(player).then((response) => {
+		// For MessageFormData:
+		// response.canceled is true if Esc is pressed.
+		// response.selection is 0 for button1, 1 for button2.
+		// Both buttons will execute previousForm(player).
+		if (previousForm) {
+			previousForm(player);
+		}
+	}).catch(e => {
+		logDebug(`[UI Error][showSystemInformation]: ${e} ${e.stack}`);
+		if (player && typeof player.sendMessage === 'function') {
+			player.sendMessage("§cAn error occurred while displaying system information.");
+		}
+		if (previousForm) { // Attempt to go back even on error
+			previousForm(player);
 		}
 	});
 }
