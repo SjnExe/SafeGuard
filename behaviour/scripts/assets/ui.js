@@ -378,7 +378,13 @@ export function banLogForm(player, previousForm) { // Added previousForm
 			}
 			
 			if (confirmData.selection === 0 && player.isOwner()) { // Delete Log
-				const bannedPerson = banLog.a;
+				const selectedLogId = banLog.logId; // Get the unique logId from the selected log
+				if (!selectedLogId) {
+					player.sendMessage("§6[§eAnti Cheats§6]§c Error: Selected log entry does not have a unique ID. Cannot delete.");
+					logDebug("[Anti Cheats UI Error][banLogFormConfirm] Selected log for deletion is missing a logId:", banLog);
+					return banLogForm(player, previousForm);
+				}
+
 				const currentLogsString = world.getDynamicProperty("ac:banLogs") ?? "[]";
 				let currentLogsArray;
 				try {
@@ -387,22 +393,24 @@ export function banLogForm(player, previousForm) { // Added previousForm
 				} catch (error) {
 					logDebug("[Anti Cheats UI] Error parsing banLogs JSON in banLogForm (delete log):", error, `Raw: ${currentLogsString}`);
 					player.sendMessage("§6[§eAnti Cheats§6]§c Error processing ban logs for deletion. Data might be corrupted.");
-					return banLogForm(player, previousForm); // Show list again
+					return banLogForm(player, previousForm);
 				}
 
 				const initialLogCount = currentLogsArray.length;
-				const filteredLogs = currentLogsArray.filter(log => log.a !== bannedPerson);
+				// Filter by the unique logId instead of the player name
+				const filteredLogs = currentLogsArray.filter(log => log.logId !== selectedLogId);
 
 				if (filteredLogs.length === initialLogCount) {
-					logDebug(`No log found for banned person: ${bannedPerson}`);
-					player.sendMessage(`§6[§eAnti Cheats§6]§e No log found for ${bannedPerson} to delete.`);
-					return banLogForm(player, previousForm); // Show list again
+					logDebug(`Log entry with ID ${selectedLogId} not found for deletion. Player: ${banLog.a}`);
+					player.sendMessage(`§6[§eAnti Cheats§6]§c Could not find the specific log entry for ${banLog.a} to delete.`);
+					return banLogForm(player, previousForm); 
 				}
+				
 				world.setDynamicProperty("ac:banLogs", JSON.stringify(filteredLogs));
-				player.sendMessage(`§6[§eAnti Cheats§6]§f Successfully deleted log for: ${bannedPerson}`);
-				return banLogForm(player, previousForm); // Show list again after deletion
+				player.sendMessage(`§6[§eAnti Cheats§6]§f Successfully deleted log entry for: ${banLog.a} (ID: ${selectedLogId.substring(0,5)}...).`);
+				return banLogForm(player, previousForm);
 			}
-			// If "Confirm" (selection 1) on the ban details, just go back to the log list.
+			// If "Confirm" (selection 1) on the ban details (now "OK"), just go back to the log list.
 			else if (confirmData.selection === 1) {
 				return banLogForm(player, previousForm);
 			}

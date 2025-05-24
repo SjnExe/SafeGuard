@@ -129,7 +129,7 @@
             {
               "id": "VI.5.2",
               "title": "CRITICAL FIX: Correct banLogForm log deletion logic",
-              "status": "in progress",
+              "status": "completed",
               "details": "Current logic deletes all logs for a player's name, not just the selected entry. This needs to be fixed by associating a unique identifier with each log entry if possible, or by ensuring only the specific selected log instance is removed.",
               "priority": "High",
               "sub_tasks": [
@@ -141,14 +141,14 @@
                 {
                   "id": "VI.5.2.2",
                   "title": "Modify banLogForm to use unique IDs for log deletion",
-                  "status": "in progress"
+                  "status": "completed"
                 }
               ]
             },
             {
               "id": "VI.5.3",
               "title": "Implement UI changes for enhanced ban log display",
-              "status": "pending",
+              "status": "in progress",
               "details": "Based on analysis VI.5.1.1: Enhance initial list to show more info (e.g., date, admin). Improve structure of detailed view. Address ActionFormData button limits if immediately problematic (e.g., by truncating list or warning if too many logs)."
             },
             {
