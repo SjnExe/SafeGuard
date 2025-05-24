@@ -1,6 +1,6 @@
 import { Player, world, InputPermissionCategory } from "@minecraft/server";
 import { formatMilliseconds, generateBanLog, logDebug, sendMessageToAllAdmins } from "../assets/util";
-import { SafeguardModule } from "./module";
+import { ACModule } from "./module";
 
 Player.prototype.initialClick = 0;
 Player.prototype.finalCps = 0;
@@ -35,12 +35,12 @@ Player.prototype.clearWarnings = function(){
 //set warn
 Player.prototype.setWarning = function(module){
 	try {
-		if (module !== "manual" && !SafeguardModule.getValidModules().includes(module)) {
+		if (module !== "manual" && !ACModule.getValidModules().includes(module)) {
 			logDebug(`[SafeGuard ERROR] Invalid module type for setWarning: ${module}`);
 			throw ReferenceError(`"${module}" isn't a safeguard module.`);
 		}
 		const warnings = this.getWarnings(); // Already has try-catch for parsing
-		const moduleID = module === "manual" ? module : SafeguardModule.getModuleID(module);
+		const moduleID = module === "manual" ? module : ACModule.getModuleID(module);
 
 		if(!warnings[moduleID]) warnings[moduleID] = 1;
 		else warnings[moduleID] += 1;
