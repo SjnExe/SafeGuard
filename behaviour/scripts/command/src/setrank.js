@@ -24,15 +24,15 @@ newCommand({
                 return;
             }
 
-            const validRankIds = Object.keys(config.default.ranks);
+            const validRankIds = Object.keys(config.ranks);
             if (!validRankIds.includes(rankIdInput)) {
                 player.sendMessage(`§cInvalid rankId "${rankIdInput}". Valid ranks are: ${validRankIds.join(", ")}.`);
                 return;
             }
 
-            targetPlayer.setDynamicProperty("safeguard:rankId", rankIdInput); // API Call
+            targetPlayer.setDynamicProperty("ac:rankId", rankIdInput); // API Call
 
-            const rankName = config.default.ranks[rankIdInput]?.name || rankIdInput;
+            const rankName = config.ranks[rankIdInput]?.name || rankIdInput;
 
             player.sendMessage(`§aSuccessfully set ${targetPlayer.name}'s rank to ${rankName}.`); // API Call
             
