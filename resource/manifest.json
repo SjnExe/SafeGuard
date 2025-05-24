@@ -4,8 +4,9 @@
     "name": "Anti Cheats Resources",
     "description": "Resource pack for Anti Cheats",
     "uuid": "855e5b34-67fd-40c5-8f70-6d41efaefbd6",
-    "version": [1, 0, 0],
-    "min_engine_version": [1, 21, 80]
+    "version": [0, 0, 1],
+    "min_engine_version": [1, 21, 80],
+    "lock_template_options": true
   },
   "modules": [
     {
