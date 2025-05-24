@@ -1,6 +1,6 @@
 import * as Minecraft from '@minecraft/server';
 import * as config from '../config.js';
-import { logDebug, sendMessageToAdmins } from '../assets/util.js';
+import { logDebug, sendMessageToAllAdmins } from '../assets/util.js';
 
 const world = Minecraft.world;
 
@@ -15,7 +15,7 @@ function handleReachViolation(player, reachTypeStr, actualDistance, maxAllowedDi
         player.setDynamicProperty("safeguard:reachViolations", 0); // Reset violations
 
         const message = `Player ${player.name} flagged for Reach (${reachTypeStr}). Distance: ${actualDistance.toFixed(2)}/${maxAllowedDistance}`;
-        sendMessageToAdmins(`§6[§eSafeGuard Notify§6]§c ${message}`);
+        sendMessageToAllAdmins(`§6[§eAnti Cheats Notify§6]§c ${message}`, true);
 
         const action = reachConfig.action;
         if (action === "customCommand" && reachConfig.customCommand) {
