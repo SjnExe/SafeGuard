@@ -338,4 +338,4 @@ Player.prototype.hasAdmin = function() {
 	return this.hasTag("admin") || this.isOwner();
 };
 
-logDebug(`[SafeGuard] Updated Player class`);
+logDebug(`[Anti Cheats] Updated Player class`);
