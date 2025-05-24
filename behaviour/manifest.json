@@ -1,7 +1,7 @@
 {
   "format_version": 2,
   "header": {
-    "name": "Anti Cheats",
+    "name": "Anti Cheats BP",
     "description": "Anti Cheats Behaviour Pack V2.0.2. Beta API REQUIRED.",
     "uuid": "81b13565-181a-42ee-abd9-a7bd3cb2dba4",
     "min_engine_version": [ 1, 21, 80 ],
@@ -24,7 +24,7 @@
   "dependencies": [
     {
       "module_name": "@minecraft/server",
-      "version": "1.8.0"
+      "version": "2.0.0-beta"
     },
     {
       "module_name": "@minecraft/server-gametest",
