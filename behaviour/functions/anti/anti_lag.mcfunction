@@ -1,1 +1,0 @@
-tellraw @s {"rawtext":[{"text":"§6[§eSafeGuard§6]§r§6§l "},{"text":"WARNING: §r§4This function is deprecated. Please use §6!lagclear§r"}]}

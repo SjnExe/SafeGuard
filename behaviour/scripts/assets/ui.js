@@ -180,18 +180,25 @@ export function showSystemInformation(player, previousForm) {
 	
 	const allPlayers = world.getAllPlayers();
 	const onlinePlayerCount = allPlayers.length;
-	const onlinePlayerNames = onlinePlayerCount > 0 ? allPlayers.map(p => p.name).join(", ") : "N/A";
+	// const onlinePlayerNames = onlinePlayerCount > 0 ? allPlayers.map(p => p.name).join(", ") : "N/A"; // Original combined list
 	
-	let adminsOnlineCount = 0;
-	let ownerOnlineCount = 0;
+	let ownerNames = [];
+    let adminNames = [];
+    let normalPlayerNames = [];
+
 	for (const p of allPlayers) {
-		if (p.hasTag('admin')) { // Assuming 'admin' tag is used for admins. Adjust if using isOp() or other methods.
-			adminsOnlineCount++;
-		}
-		if (p.isOwner()) { // isOwner() is a custom method from Player class extension
-			ownerOnlineCount++;
-		}
-	}
+        if (p.isOwner()) {
+            ownerNames.push(p.name);
+        } else if (p.hasTag('admin')) { 
+            adminNames.push(p.name);
+        } else {
+            normalPlayerNames.push(p.name);
+        }
+    }
+    // Get counts from array lengths
+    const ownerOnlineCount = ownerNames.length;
+    const displayedAdminsOnlineCount = adminNames.length;
+    const normalPlayerCount = normalPlayerNames.length; // New count
 
 	let bannedPlayersCount = "N/A";
 	try {
@@ -216,9 +223,10 @@ export function showSystemInformation(player, previousForm) {
 
 	// Format body
 	let bodyText = `§gCurrent Server Time:§r ${serverTime}\n\n`;
-	bodyText += `§gOnline Players (${onlinePlayerCount}):§r ${onlinePlayerNames}\n`;
-	bodyText += `§gAdmins Online:§r ${adminsOnlineCount}\n`;
-	bodyText += `§gOwner Online:§r ${ownerOnlineCount}\n\n`;
+	bodyText += `§gTotal Online Players:§r ${onlinePlayerCount}\n\n`;
+    bodyText += `§gOwners (${ownerOnlineCount}):§r ${ownerNames.length > 0 ? ownerNames.join(", ") : "N/A"}\n`;
+    bodyText += `§gAdmins (${displayedAdminsOnlineCount}):§r ${adminNames.length > 0 ? adminNames.join(", ") : "N/A"}\n`;
+    bodyText += `§gNormal Players (${normalPlayerCount}):§r ${normalPlayerNames.length > 0 ? normalPlayerNames.join(", ") : "N/A"}\n\n`;
 	bodyText += `§gTotal Banned Players:§r ${bannedPlayersCount}\n\n`;
 
 	form.body(bodyText);
