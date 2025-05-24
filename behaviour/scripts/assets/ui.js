@@ -220,8 +220,6 @@ export function showSystemInformation(player, previousForm) {
 	bodyText += `§gAdmins Online:§r ${adminsOnlineCount}\n`;
 	bodyText += `§gOwner Online:§r ${ownerOnlineCount}\n\n`;
 	bodyText += `§gTotal Banned Players:§r ${bannedPlayersCount}\n\n`;
-	bodyText += `§gServer Performance:§r ${serverPerformance}\n`;
-	bodyText += `§gAddon Version:§r ${addonVersion}`;
 
 	form.body(bodyText);
 	form.button1("§cBack"); // MessageFormData has button1 and button2
@@ -250,7 +248,7 @@ export function showSystemInformation(player, previousForm) {
 	// However, the prompt *specifically* asks for MessageFormData.
 	// I will proceed with MessageFormData and make both buttons lead back.
 
-	form.button1("§7Refresh"); // Will also go back
+	form.button1("§9Re-fetch Info"); // Will also go back
 	form.button2("§cBack");   // Main back button
 
 	form.show(player).then((response) => {
@@ -543,11 +541,11 @@ function configEditorForm(player, previousForm) {
 
 					switch (typeof subValue) {
 						case "boolean":
-							configModuleForm.toggle(`${key} -> ${subKey}\n`, { defaultValue: subValue});
+							configModuleForm.toggle(`${key} -> ${subKey}\n`, subValue);
 							break;
 						case "number":
 						case "string":
-							configModuleForm.textField(`${key} -> ${subKey}\n`, subValue.toString(), {defaultValue:subValue.toString()});
+							configModuleForm.textField(`${key} -> ${subKey}\n`, subValue.toString(), subValue.toString());
 							break;
 					}
 				}
@@ -556,11 +554,11 @@ function configEditorForm(player, previousForm) {
 
 				switch (typeof value) {
 					case "boolean":
-						configModuleForm.toggle(`${key}\n`, { defaultValue: value});
+						configModuleForm.toggle(`${key}\n`, value);
 						break;
 					case "number":
 					case "string":
-						configModuleForm.textField(`${key}\n`, value.toString(), {defaultValue:value.toString()});
+							configModuleForm.textField(`${key}\n`, value.toString(), value.toString());
 						break;
 				}
 			}
