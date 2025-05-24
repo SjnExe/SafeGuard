@@ -26,6 +26,6 @@ import "../command/src/clearbanlogs";
 import "./src/setrank.js";
 import "./src/offlineban.js";
 import "./src/offlineunban.js";
-import "./commands/teleport";
+import "./src/teleport.js";
 
 import "../command/src/report";
