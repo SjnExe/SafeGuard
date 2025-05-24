@@ -4,27 +4,15 @@
     "name": "Anti Cheats",
     "description": "Anti Cheats Behaviour Pack V2.0.2. Beta API REQUIRED.",
     "uuid": "81b13565-181a-42ee-abd9-a7bd3cb2dba4",
-    "min_engine_version": [
-      1,
-      21,
-      80
-    ],
-    "version": [
-      2,
-      0,
-      2
-    ]
+    "min_engine_version": [ 1, 21, 80 ],
+    "version": [ 2, 0, 2 ]
   },
   "modules": [
     {
       "description": "Behavior Pack Module",
       "type": "data",
       "uuid": "cd2cd41a-1849-410e-8f0a-5d30fde4bd9a",
-      "version": [
-        1,
-        0,
-        0
-      ]
+      "version": [ 1, 0, 0 ]
     },
     {
       "description": "Gametest Module",
@@ -32,21 +20,7 @@
       "language": "javascript",
       "entry": "scripts/index.js",
       "uuid": "f626740d-50a6-49f1-a24a-834983b72134",
-      "version": [
-        1,
-        0,
-        0
-      ]
-    },
-    {
-      "description": "Resource Pack",
-      "type": "resources",
-      "uuid": "22a0d6c6-34c2-4a2f-a33f-166e3090e6d4",
-      "version": [
-        1,
-        0,
-        0
-      ]
+      "version": [ 1, 0, 0 ]
     }
   ],
   "dependencies": [
@@ -61,6 +35,10 @@
     {
       "module_name": "@minecraft/server-ui",
       "version": "2.1.0-beta"
+    },
+    {
+      "uuid": "855e5b34-67fd-40c5-8f70-6d41efaefbd6",
+      "version": [1, 0, 0]
     }
   ]
 }
