@@ -9,7 +9,6 @@
   },
   "modules": [
     {
-      "description": "Anti Cheats Resources",
       "type": "resources",
       "uuid": "2370fd7e-6d84-4871-b740-fd5e84a7059a",
       "version": [1, 0, 0]
