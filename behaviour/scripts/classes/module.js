@@ -3,7 +3,7 @@ import { logDebug } from "../assets/util";
 
 
 
-class ACModule {
+class ACModuleInternal {
     Modules = {
         antiGmc: "Anti GMC",
         antiGrief: "Anti Grief",
@@ -75,4 +75,4 @@ class ACModule {
 
 };  
 
-export const ACModule = new ACModule();
+export const ACModule = new ACModuleInternal();
