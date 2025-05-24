@@ -13,12 +13,16 @@ export function initializeNoSwingCheck() {
     logDebug("[NoSwingCheck] Initializing...");
 
     // Subscribe to player swing events to record the time
-    world.afterEvents.playerSwing.subscribe(event => {
-        const { player } = event;
-        playerLastSwingTime.set(player.id, Date.now());
-    }, {
-        // No specific entityTypes needed here, just general player swings.
-    });
+    if (world.afterEvents.playerSwing) {
+        world.afterEvents.playerSwing.subscribe(event => {
+            const { player } = event;
+            playerLastSwingTime.set(player.id, Date.now());
+        }, {
+            // No specific entityTypes needed here, just general player swings.
+        });
+    } else {
+        logDebug("[NoSwingCheck] world.afterEvents.playerSwing is not available. NoSwing detection based on actual swings will be impaired.");
+    }
 
     // Subscribe to entity hit events to check against last swing time
     world.afterEvents.entityHitEntity.subscribe(event => {

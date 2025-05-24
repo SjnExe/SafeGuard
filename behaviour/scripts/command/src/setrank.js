@@ -1,5 +1,5 @@
 import { newCommand } from '../handle.js';
-import { getPlayerByName } from "../../assets/util.js";
+import { getPlayerByName, logDebug } from "../../assets/util.js"; // Added logDebug
 import config from '../../config.js'; // Corrected import for config
 
 newCommand({
@@ -39,12 +39,12 @@ newCommand({
             // Optional: Notify target player
             targetPlayer.sendMessage(`§aYour rank has been set to ${rankName}.`); // API Call
         } catch (e) {
-            logDebug("[SafeGuard ERROR][setrank]", e, e.stack);
+            logDebug("[Anti Cheats ERROR][setrank]", e, e.stack); // Changed prefix
             if (data && data.player) {
                 try {
                     data.player.sendMessage("§cAn error occurred while trying to set the rank. Please check the console.");
                 } catch (sendError) {
-                    logDebug("[SafeGuard ERROR][setrank] Failed to send error message to command executor:", sendError, sendError.stack);
+                    logDebug("[Anti Cheats ERROR][setrank] Failed to send error message to command executor:", sendError, sendError.stack); // Changed prefix
                 }
             }
         }

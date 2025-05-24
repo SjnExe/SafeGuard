@@ -27,8 +27,8 @@ export function Initialize(){
         // Initialize Gamerules
         if (world.getDynamicProperty("ac:gamerulesSet") === undefined) {
             try {
-                world.setGameRule(Minecraft.GameRule.sendCommandFeedback, false);
-                world.setGameRule(Minecraft.GameRule.commandBlockOutput, false);
+                world.gameRules.sendCommandFeedback = false;
+                world.gameRules.commandBlockOutput = false;
                 world.setDynamicProperty("ac:gamerulesSet", true);
                 logDebug("[Anti Cheats] Initialized gamerules (sendCommandFeedback, commandBlockOutput).");
             } catch (e) {

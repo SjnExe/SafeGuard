@@ -252,14 +252,18 @@ export function showSystemInformation(player, previousForm) {
 	form.button2("§cBack");   // Main back button
 
 	form.show(player).then((response) => {
-		// For MessageFormData:
-		// response.canceled is true if Esc is pressed.
-		// response.selection is 0 for button1, 1 for button2.
-		// Both buttons will execute previousForm(player).
-		if (previousForm) {
-			previousForm(player);
-		}
-	}).catch(e => {
+            if (response.canceled) {
+                if (previousForm) return previousForm(player);
+                return;
+            }
+            if (response.selection === 0) { // For button1 ("Re-fetch Info")
+                return showSystemInformation(player, previousForm); // Re-show the current form
+            }
+            // For button2 ("Back"), or if only one button effectively leads here
+            if (previousForm) {
+                return previousForm(player);
+            }
+        }).catch(e => {
 		logDebug(`[UI Error][showSystemInformation]: ${e} ${e.stack}`);
 		if (player && typeof player.sendMessage === 'function') {
 			player.sendMessage("§cAn error occurred while displaying system information.");
@@ -442,7 +446,7 @@ export function banLogForm(player, previousForm) { // Added previousForm
 	});
 }
 
-function ownerLoginForm(player){
+function ownerLoginForm(player, nextForm, previousFormForNext){
 	if(!config.default.OWNER_PASSWORD){
 		player.sendMessage(`§6[§eAnti Cheats§6]§4 Error!§c You have not set an owner password inside of the configuration file, access denied.`);
 		if (previousFormForNext) return previousFormForNext(player); // Go back if password not set
@@ -625,7 +629,7 @@ function moduleSettingsForm(player, previousForm){
 		const setting = validModules[i];
 		const isSettingEnabled = ACModule.getModuleStatus(setting);
 		// The second argument to toggle is indeed the defaultValue.
-		settingsModalForm.toggle(setting, isSettingEnabled); 
+		settingsModalForm.toggle(setting, { defaultValue: isSettingEnabled }); 
 	}
 
 	settingsModalForm.show(player).then((formData) => {
