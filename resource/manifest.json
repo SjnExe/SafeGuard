@@ -2,7 +2,6 @@
   "format_version": 2,
   "header": {
     "name": "Anti Cheats Resources",
-    "description": "Resource pack for Anti Cheats",
     "uuid": "855e5b34-67fd-40c5-8f70-6d41efaefbd6",
     "version": [0, 0, 1],
     "min_engine_version": [1, 21, 80],
@@ -10,7 +9,6 @@
   },
   "modules": [
     {
-      "description": "Anti Cheats Resources",
       "type": "resources",
       "uuid": "2370fd7e-6d84-4871-b740-fd5e84a7059a",
       "version": [1, 0, 0]
