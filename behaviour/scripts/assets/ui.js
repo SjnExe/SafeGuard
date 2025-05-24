@@ -188,11 +188,11 @@ export function showSystemInformation(player, previousForm) {
 
 	for (const p of allPlayers) {
         if (p.isOwner()) {
-            ownerNames.push(p.name);
+            ownerNames.push(`§c${p.name}§r`); // Add color codes
         } else if (p.hasTag('admin')) { 
-            adminNames.push(p.name);
+            adminNames.push(`§6${p.name}§r`); // Add color codes
         } else {
-            normalPlayerNames.push(p.name);
+            normalPlayerNames.push(`§a${p.name}§r`); // Add color codes
         }
     }
     // Get counts from array lengths
@@ -553,11 +553,11 @@ function configEditorForm(player, previousForm) {
 
 					switch (typeof subValue) {
 						case "boolean":
-							configModuleForm.toggle(`${key} -> ${subKey}\n`, subValue);
+							configModuleForm.toggle(`${key} -> ${subKey}\n`, { defaultValue: subValue });
 							break;
 						case "number":
 						case "string":
-							configModuleForm.textField(`${key} -> ${subKey}\n`, subValue.toString(), subValue.toString());
+							configModuleForm.textField(`${key} -> ${subKey}\n`, subValue.toString(), { defaultValue: subValue.toString() });
 							break;
 					}
 				}
@@ -566,11 +566,11 @@ function configEditorForm(player, previousForm) {
 
 				switch (typeof value) {
 					case "boolean":
-						configModuleForm.toggle(`${key}\n`, value);
+						configModuleForm.toggle(`${key}\n`, { defaultValue: value });
 						break;
 					case "number":
 					case "string":
-							configModuleForm.textField(`${key}\n`, value.toString(), value.toString());
+							configModuleForm.textField(`${key}\n`, value.toString(), { defaultValue: value.toString() });
 						break;
 				}
 			}
