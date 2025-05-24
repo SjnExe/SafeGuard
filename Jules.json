@@ -148,16 +148,44 @@
             {
               "id": "VI.5.3",
               "title": "Implement UI changes for enhanced ban log display",
-              "status": "in progress",
-              "details": "Based on analysis VI.5.1.1: Enhance initial list to show more info (e.g., date, admin). Improve structure of detailed view. Address ActionFormData button limits if immediately problematic (e.g., by truncating list or warning if too many logs)."
+              "status": "completed"
             },
             {
               "id": "VI.5.4",
               "title": "Consider and implement filtering/sorting options for ban logs",
-              "status": "pending"
+              "status": "completed", 
+              "sub_tasks": [
+                {
+                  "id": "VI.5.4.1",
+                  "title": "Feasibility analysis for log filtering/sorting",
+                  "status": "completed",
+                  "details": "Filtering by player/admin name and sorting by date/player/admin name are feasible. Recommended UI: 'Filter & Sort Logs' button on banLogForm opening a ModalForm for criteria. Results are passed back to banLogForm for re-rendering. A 'Clear View Options' button will revert to default."
+                }
+              ]
             },
             {
               "id": "VI.5.5",
+              "title": "Implement Filtering for Ban Logs",
+              "status": "pending",
+              "details": "Based on VI.5.4.1: Implement logic to filter ban logs by player name and admin name as per the modal dialog.",
+              "sub_tasks": []
+            },
+            {
+              "id": "VI.5.6",
+              "title": "Implement Sorting for Ban Logs",
+              "status": "pending",
+              "details": "Based on VI.5.4.1: Implement logic to sort ban logs by date, player name, or admin name, with ascending/descending options.",
+              "sub_tasks": []
+            },
+            {
+              "id": "VI.5.7",
+              "title": "Implement UI for Ban Log Filtering/Sorting Options",
+              "status": "pending",
+              "details": "Based on VI.5.4.1: Create the 'Filter & Sort Logs' button, the ModalForm for options, and the 'Clear View Options' button. Integrate with filtering/sorting logic.",
+              "sub_tasks": []
+            },
+            {
+              "id": "VI.5.8",
               "title": "Explore adding other log types (e.g., command usage, server events) if data is accessible",
               "status": "pending"
             }

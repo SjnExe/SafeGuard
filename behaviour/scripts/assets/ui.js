@@ -335,13 +335,25 @@ export function banLogForm(player, previousForm) { // Added previousForm
 		return;
 	}
 	
+	const MAX_LOGS_DISPLAY = 50;
+	let displayLogs = newLogs;
+	let bodyMessage = `Select a player to view their ban log entry. Total logs: ${newLogs.length}`;
+
+	if (newLogs.length > MAX_LOGS_DISPLAY) {
+		displayLogs = newLogs.slice(-MAX_LOGS_DISPLAY);
+		bodyMessage = `Displaying the most recent ${MAX_LOGS_DISPLAY} of ${newLogs.length} logs. Older logs are still stored.`;
+	}
+
 	const form = new ActionFormData()
-		.title("§l§7Ban Logs") // Enhanced title
-		.body(`Select a player to view their ban log entry. Total logs: ${newLogs.length}`); // Added count to body
+		.title("§l§7Ban Logs") 
+		.body(bodyMessage);
 	
-	for(const log of newLogs){
+	for(const log of displayLogs){ // Iterate over displayLogs
 		if(!log) continue;
-		form.button(log.a, "textures/ui/profile_spectator.png"); // Icon for each player log
+		// Format: PlayerName - By: AdminName - On: MM/DD/YYYY (ID: abc12...)
+		const dateString = new Date(log.c).toLocaleDateString(); // Short date format
+		const buttonText = `§e${log.a}§r - By: ${log.b}\nOn: ${dateString} (ID: ${log.logId ? log.logId.substring(0,5) : 'N/A'}...)`;
+		form.button(buttonText, "textures/ui/paper.png"); 
 	}
 
 	if (previousForm) {
@@ -354,21 +366,25 @@ export function banLogForm(player, previousForm) { // Added previousForm
 			return;
 		}
 		// Handle Back button selection
-		if (previousForm && formData.selection === newLogs.length) {
+		// Adjust index for displayLogs if it was sliced
+		if (previousForm && formData.selection === displayLogs.length) { 
 			return previousForm(player);
 		}
 
-		const banLog = newLogs[formData.selection];
+		const banLog = displayLogs[formData.selection]; // Use displayLogs
 		const form2 = new MessageFormData()
-			.title(`§l§7Log: ${banLog.a}`) // Enhanced title
+			.title(`§l§7Log Details: ${banLog.a}`) 
 			.body(
 				`§lPlayer:§r ${banLog.a}\n` +
+				`§lLog ID:§r ${banLog.logId || "N/A"}\n` +
+				`§l--------------------\n` +
 				`§lBanned By:§r ${banLog.b}\n` +
-				`§lDate:§r ${new Date(banLog.c).toLocaleString()}\n` + // Improved date formatting
-				`§lReason:§r ${banLog.d}`
+				`§lDate:§r ${new Date(banLog.c).toLocaleString()}\n` +
+				`§lReason:§r ${banLog.d}\n` +
+				`§l--------------------`
 			)
-			.button2("§7OK") // Changed from Confirm to OK
-			.button1(player.isOwner() ? "§4Delete Log" : "§cBack to Log List"); // Styled Delete Log
+			.button2("§7OK") 
+			.button1(player.isOwner() ? "§4Delete Log" : "§cBack to Log List"); 
 		
 		form2.show(player).then((confirmData) => {
 			// If "Back to Log List" (selection 0 and not owner, or selection 0 and owner cancels delete)
