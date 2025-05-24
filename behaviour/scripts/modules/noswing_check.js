@@ -1,6 +1,6 @@
 import * as Minecraft from '@minecraft/server';
 import * as config from '../config.js';
-import { logDebug, sendMessageToAdmins } from '../assets/util.js';
+import { logDebug, sendMessageToAllAdmins } from '../assets/util.js';
 
 const world = Minecraft.world;
 const playerLastSwingTime = new Map(); // Stores player.id -> timestamp
@@ -59,7 +59,7 @@ export function initializeNoSwingCheck() {
                 player.setDynamicProperty("safeguard:noSwingViolations", 0); // Reset violations
 
                 const message = `Player ${player.name} flagged for NoSwing Killaura.`;
-                sendMessageToAdmins(`§6[§eSafeGuard Notify§6]§c ${message}`);
+                sendMessageToAllAdmins(`§6[§eAnti Cheats Notify§6]§c ${message}`, true);
 
                 const action = config.default.combat.noSwingCheck.action;
                 if (action === "customCommand") {
