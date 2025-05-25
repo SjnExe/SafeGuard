@@ -471,6 +471,7 @@ function ownerLoginForm(player, nextForm, previousFormForNext){
 		if (formData.formValues[0] === config.default.OWNER_PASSWORD) {
 			player.sendMessage("§6[§eAnti Cheats§6]§a Access granted, you now have owner status.");
 			player.setDynamicProperty("ac:ownerStatus",true);
+			player.setDynamicProperty("ac:rankId" ,"owner"); //Added line
 			if (nextForm && previousFormForNext) {
 				return nextForm(player, previousFormForNext); // Proceed to the target form, passing the original previousForm
 			} else if (nextForm) {
