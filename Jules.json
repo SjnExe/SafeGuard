@@ -166,21 +166,21 @@
             {
               "id": "VI.5.5",
               "title": "Implement Filtering for Ban Logs",
-              "status": "pending",
+              "status": "completed",
               "details": "Based on VI.5.4.1: Implement logic to filter ban logs by player name and admin name as per the modal dialog.",
               "sub_tasks": []
             },
             {
               "id": "VI.5.6",
               "title": "Implement Sorting for Ban Logs",
-              "status": "pending",
+              "status": "completed",
               "details": "Based on VI.5.4.1: Implement logic to sort ban logs by date, player name, or admin name, with ascending/descending options.",
               "sub_tasks": []
             },
             {
               "id": "VI.5.7",
               "title": "Implement UI for Ban Log Filtering/Sorting Options",
-              "status": "pending",
+              "status": "completed",
               "details": "Based on VI.5.4.1: Create the 'Filter & Sort Logs' button, the ModalForm for options, and the 'Clear View Options' button. Integrate with filtering/sorting logic.",
               "sub_tasks": []
             },
