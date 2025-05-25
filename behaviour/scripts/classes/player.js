@@ -320,16 +320,46 @@ Player.prototype.unmute = function(){
 	}
 }
 
+/**
+ * @function isOwner
+ * @memberof Player.prototype
+ * @returns {boolean} True if the player is the designated owner of the world, false otherwise.
+ * @description Checks if the current player is the owner of the world.
+ * The owner's name is stored in the "ac:ownerPlayerName" world dynamic property.
+ * This method compares the player's name (`this.name`) against the stored owner name.
+ * If "ac:ownerPlayerName" is not set or is an empty string, it returns false,
+ * indicating no owner has been designated or the property is missing.
+ * The actual designation of the owner is handled during the addon's initialization
+ * in `initialize.js`, where the first player to join a new world (without an existing owner)
+ * is typically set as the owner.
+ * @example
+ * if (player.isOwner()) {
+ *   player.sendMessage("You have owner privileges.");
+ * }
+ */
 Player.prototype.isOwner = function(){
-	return this.getDynamicProperty("ac:ownerStatus") ?? false;
-	//TODO: save the owner password in dynamic property
-	//NOTE: owner should have more powers than admins, for example editing config and denying admins ppermissions
-	//CHALLENGE: determining which player to give owner to on initiliaze
+	// Retrieve the owner's name from a world dynamic property.
+	const ownerPlayerName = world.getDynamicProperty("ac:ownerPlayerName");
+
+	// If the dynamic property is not set or is empty, no one is the owner yet.
+	if (typeof ownerPlayerName !== 'string' || ownerPlayerName.trim() === '') {
+		// logDebug(`[Anti Cheats] isOwner check: ac:ownerPlayerName is not set. No player is currently designated as owner.`);
+		return false;
+	}
+
+	// Compare the current player's name with the stored owner's name.
+	const isPlayerOwner = this.name === ownerPlayerName;
+	// logDebug(`[Anti Cheats] isOwner check: Current player: ${this.name}, Stored owner: ${ownerPlayerName}, Is owner: ${isPlayerOwner}`);
+	return isPlayerOwner;
+	// TODO: The actual setting of "ac:ownerPlayerName" will be handled in 'initialize.js'
+	// by designating the first player to join a world where "ac:ownerPlayerName" is not yet set.
+	// NOTE: owner should have more powers than admins, for example editing config and denying admins permissions.
+	// CHALLENGE: determining which player to give owner to on initialize - Addressed by first-joiner in initialize.js.
 	//
-	//POSSIBLE SOLUTION: 
-	//first player to use owner password, the owner password could be either set inside config.js (where only owner can access)
-	//another way could be to randomly generate a password on initialize, and display it to the first player to run setup
-	//problem, if owner doesn't setup correctly, another admin can get owner status with no way to get it back 
+	// POSSIBLE SOLUTION (Old, superseded by current design):
+	// first player to use owner password, the owner password could be either set inside config.js (where only owner can access)
+	// another way could be to randomly generate a password on initialize, and display it to the first player to run setup
+	// problem, if owner doesn't setup correctly, another admin can get owner status with no way to get it back
 };
 
 //check admin status
