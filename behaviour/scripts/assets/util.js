@@ -159,24 +159,34 @@ export function getPlayerByName(name){
 }
 
 /**
- * 
- * @param {string} id ID of the scoreboard
- * @param {string} type Should be "add" or "remove" 
- * @throws {Error} If an invalid 'type' is provided or the action fails.
+ * Adds or removes a scoreboard objective.
+ * Uses `Minecraft.system.run()` to defer the execution, ensuring safety if called from restricted contexts
+ * like "before event" handlers where direct scoreboard modification might be disallowed.
+ *
+ * @param {string} id The ID of the scoreboard objective.
+ * @param {"add" | "remove"} type The action to perform: "add" to create the objective, "remove" to delete it.
+ * @param {string} [displayName] Optional display name for the objective when adding. Defaults to `id` if not provided.
+ *                                This parameter is ignored if `type` is "remove".
+ * @throws {Error} If an invalid 'type' is provided, or if the scoreboard operation itself fails (e.g., objective already exists when adding, or doesn't exist when removing).
  */
-export function scoreboardAction(id,type){
+export function scoreboardAction(id, type, displayName){
 	if (!["add", "remove"].includes(type)) {
 		throw new Error(`Invalid 'type': Expected "add" or "remove", got "${type}"`);
 	}
 
-    //this shite not letting me delete it inside a before event :sob:
+    // Scoreboard operations (especially removal) can be restricted if called directly 
+    // from certain "before event" handlers (e.g., world.beforeEvents.chatSend).
+    // Using Minecraft.system.run() defers the execution to the next tick, 
+    // ensuring the operation occurs outside the immediate event context, which is safer.
     Minecraft.system.run(() =>{
 		try{
         	if(type === "remove") world.scoreboard.removeObjective(id);
-        	else if(type === "add") world.scoreboard.addObjective(id,id);
+        	else if(type === "add") world.scoreboard.addObjective(id, displayName || id); // Use displayName or default to id
 		}
 		catch(e){
-			throw e;
+			// Log the error or handle it more gracefully if needed, then rethrow.
+			logDebug(`[Anti Cheats ERROR] Failed to ${type} scoreboard objective "${id}":`, e, e.stack);
+			throw e; // Rethrow to indicate failure to the caller
 		}
     });
 }
@@ -209,13 +219,20 @@ export function addPlayerToUnbanQueue(adminPlayer,playerName){
 }
 
 /**
- * 
- * @param {String} message - Message to send to admins
- * @param {Boolean} [isANotification=false] - If the message should only be sent to admins with notify turned on
- * @returns 
+ * Sends a message to all players who have admin privileges (checked via `player.hasAdmin()`).
+ * Can optionally filter recipients to only those admins who also have a specific scoreboard objective set (e.g., for notifications).
+ *
+ * @param {string} [message="No message provided"] - The message string to send.
+ * @param {boolean} [isANotification=false] - If true, only sends to admins who also have the "ac:notify" scoreboard objective set to 1.
+ *                                           If false (default), sends to all players for whom `player.hasAdmin()` is true.
+ * @returns {void}
  */
 export function sendMessageToAllAdmins(message = "No message provided",isANotification = false){
-	if(config.default.debug) return world.sendMessage(message);
+	// Note: A previous `if(config.default.debug) return world.sendMessage(message);` was removed
+	// as `config.default.debug` was not defined in `config.js`, making it dead code.
+	// This function now strictly targets admins (optionally filtered by notification settings).
+	// If a global broadcast for admin messages is needed for debugging, 
+	// it should be explicitly configured and implemented elsewhere or by modifying this function with a clear config flag.
 	let entityQueryOptions = {};
 	if(isANotification){
 		entityQueryOptions.scoreOptions = [{

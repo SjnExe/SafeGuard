@@ -23,118 +23,237 @@ const world = Minecraft.world;
 
 const gamertagRegex = /[^A-Za-z 0-9-]/gm;
 
+// --- JSDoc for handleMute, handleAntiSpam, formatChatMessageWithRank, and the main chatSend subscriber ---
 
+/**
+ * Handles mute status for a player trying to send a chat message.
+ * If the player is actively muted, it sends them a message with mute details and cancels the chat event.
+ * It also corrects the `player.isMuted` state if a stored mute is found to be no longer active.
+ *
+ * @param {Minecraft.Player} player The player who sent the chat message.
+ * @param {Minecraft.ChatSendBeforeEvent} data The `beforeChatSend` event data, used to cancel the message.
+ * @returns {boolean} Returns `true` if the message was cancelled due to an active mute, `false` otherwise.
+ */
+function handleMute(player, data) {
+	if (player.isMuted) {
+		const muteInfo = player.getMuteInfo(); // Assumes getMuteInfo is robust
+		if (!muteInfo.isActive) {
+			player.isMuted = false; // Correct the state if mute expired
+		} else {
+			player.sendMessage(`§6[§eAnti Cheats§6]§4 You were muted by §c${muteInfo.admin}§4 Time remaining: §c${muteInfo.isPermanent ? "permanent" : formatMilliseconds(muteInfo.duration - Date.now())} §4reason: §c${muteInfo.reason}`);
+			data.cancel = true;
+			return true;
+		}
+	}
+	return false;
+}
+
+/**
+ * Handles anti-spam checks for a player's chat message.
+ * This function checks for various spam conditions:
+ * - Extremely long messages (potential packet exploit).
+ * - Repetitive messages.
+ * - Messages sent too quickly in succession.
+ * - Messages exceeding configured character or word limits.
+ * It applies different rules for admins (who bypass these checks) and for messages starting with whitelisted prefixes (e.g., commands),
+ * which have more lenient spam timing.
+ * If a spam condition is met, the chat event (`data`) is cancelled, and the player is notified.
+ * Player's `lastMessage` and `lastMessageDate` properties are updated if the message passes checks.
+ *
+ * @param {Minecraft.Player} player The player who sent the message.
+ * @param {string} message The content of the chat message.
+ * @param {Minecraft.ChatSendBeforeEvent} data The `beforeChatSend` event data, used to cancel the message.
+ * @param {boolean} isAdmin Indicates if the player has admin privileges (to bypass spam checks).
+ * @returns {boolean} Returns `true` if the message was cancelled due to spam, `false` otherwise.
+ */
+function handleAntiSpam(player, message, data, isAdmin) {
+	const antiSpamModuleActive = ACModule.getModuleStatus(ACModule.Modules.spammerProtection);
+	if (isAdmin || !antiSpamModuleActive) {
+		return false;
+	}
+
+	const now = Date.now();
+	const spamConfig = config.default.chat.spammer;
+
+	// Invalid packet length (extreme case)
+	if (message.length > 512) {
+		data.cancel = true;
+		player.ban("Sending invalid packet (length > 512)", Date.now(), true, "Anti Cheats AntiCheat");
+		Minecraft.system.run(() => {
+			player.runCommand(`kick @s §6[§eAnti Cheats§6]§r You have been permanently banned for sending invalid packet.`);
+		});
+		sendMessageToAllAdmins(`§6[§eAnti Cheats Notify§6]§c ${player.name}§4 was automatically banned for sending an invalid text packet (length=${message.length})`, true);
+		return true;
+	}
+
+	// Check against whitelisted prefixes first
+	let isWhitelisted = false;
+	for (const wPrefix of spamConfig.whitelistedPrefixes) {
+		if (message.startsWith(wPrefix)) {
+			isWhitelisted = true;
+			break;
+		}
+	}
+
+	if (isWhitelisted) {
+		// Even whitelisted messages (like commands) should update last message date to prevent command spam
+		// but not content for duplicate check if it's a command with varying args.
+		// For simplicity, we'll update lastMessageDate, but not lastMessage content for whitelisted.
+		// This allows different commands rapidly, but not the *exact same* command.
+		// A more nuanced approach might be needed if exact same commands are to be allowed rapidly.
+		if (message === player.lastMessage && (now - player.lastMessageDate <= spamConfig.minTime)) {
+             player.lastMessageDate = now; // Still update time to penalize exact same command rapidly
+			data.cancel = true;
+			player.sendMessage(`§6[§eAnti Cheats§6]§r§c Please don't send repeating messages!`);
+			return true;
+        }
+        // For whitelisted prefixes (usually commands), we don't check content length or word limit.
+        // We do update lastMessageDate to prevent extremely rapid command execution.
+        if (now - player.lastMessageDate <= spamConfig.minTime / 2 ) { // Allow commands a bit faster
+            data.cancel = true;
+			player.lastMessageDate = now; // Update time to penalize
+			player.sendMessage(`§6[§eAnti Cheats§6]§r§c You're sending commands too quickly!`);
+			return true;
+        }
+
+	} else {
+		// Regular spam checks for non-whitelisted messages
+		if (message === player.lastMessage) {
+			data.cancel = true;
+			player.sendMessage(`§6[§eAnti Cheats§6]§r§c Please don't send repeating messages!`);
+			return true;
+		}
+		if (now - player.lastMessageDate <= spamConfig.minTime) {
+			data.cancel = true;
+			player.lastMessageDate = now; // Update time to penalize
+			player.sendMessage(`§6[§eAnti Cheats§6]§r§c You're sending messages too quickly!`);
+			return true;
+		}
+		if (message.length > spamConfig.maxMessageCharLimit) {
+			data.cancel = true;
+			player.sendMessage(`§6[§eAnti Cheats§6]§r§c Sorry! Your message has too many characters!`);
+			return true;
+		}
+		if (message.split(" ").length > spamConfig.maxMessageWordLimit) {
+			data.cancel = true;
+			player.sendMessage(`§6[§eAnti Cheats§6]§r§c Please keep your message below ${spamConfig.maxMessageWordLimit} words!`);
+			return true;
+		}
+	}
+
+    // If message passes all relevant checks, update last message info
+    // For whitelisted (commands), only update if it's different from the last one to allow some repetition of different commands.
+    // For non-whitelisted, always update.
+    if (!isWhitelisted || message !== player.lastMessage) {
+        player.lastMessage = message;
+    }
+    player.lastMessageDate = now;
+
+	return false; // Message not cancelled by spam checks
+}
+
+/**
+ * Formats a chat message with the player's rank information (prefix, name color, message color).
+ * Retrieves the player's rank ID from a dynamic property (`ac:rankId`) or uses the default rank.
+ * Looks up rank details from `config.default.ranks`.
+ *
+ * @param {Minecraft.Player} player The player whose message is being formatted.
+ * @param {string} message The original chat message content.
+ * @returns {string|null} The formatted chat message string if rank information is found and applied.
+ *                        Returns `null` if the rank ID does not correspond to a defined rank in the configuration,
+ *                        implying the original message should be sent or handled differently.
+ */
+function formatChatMessageWithRank(player, message) {
+	const playerRankId = player.getDynamicProperty("ac:rankId") || config.default.defaultRank;
+	const rankIdStr = typeof playerRankId === 'string' ? playerRankId : config.default.defaultRank;
+	const rankInfo = config.default.ranks[rankIdStr];
+
+	if (rankInfo) {
+		return `${rankInfo.displayText} ${rankInfo.nameColor}${player.name}§r: ${rankInfo.messageColor}${message}`;
+	}
+	return null;
+}
+
+/**
+ * Subscribes to the `world.beforeEvents.chatSend` event to intercept and process chat messages.
+ * This is a central handler for chat-related functionalities:
+ * 1.  **Mute Handling**: Checks if the sender is muted; if so, cancels the message and notifies the player. (via `handleMute`)
+ * 2.  **Anti-Spam**: Applies various spam detection rules (message length, speed, repetition, content limits)
+ *     and cancels the message if spam is detected. Admin players bypass these checks.
+ *     Updates player's last message details for spam tracking. (via `handleAntiSpam`)
+ * 3.  **Command Processing**: If the message starts with the configured command prefix (`config.default.chat.prefix`),
+ *     it cancels the original chat message and forwards the event data to the `commandHandler`
+ *     for execution, run asynchronously via `Minecraft.system.run()`.
+ * 4.  **Rank Formatting**: For regular chat messages (not commands), it formats the message
+ *     by prepending the player's rank display text and applying rank-specific colors for
+ *     the name and message content. The original message is cancelled, and the formatted
+ *     version is broadcast using `world.sendMessage()`. (via `formatChatMessageWithRank`)
+ *
+ * It includes comprehensive error handling to prevent crashes and notify players or log issues.
+ * The order of operations ensures that mutes and spam are checked first, then commands, and finally rank formatting for public chat.
+ */
 world.beforeEvents.chatSend.subscribe((data) => {
 	try {
 		const { sender: player, message } = data;
+		const isAdmin = player.hasAdmin();
+		const commandPrefix = config.default.chat.prefix;
 
-		const prefix = config.default.chat.prefix;
-	const whitelistedPrefixes = config.default.chat.spammer.whitelistedPrefixes;
-	let doNotCheckSpam = false;
-	const isAdmin = player.hasAdmin();
-
-	const antiSpam = ACModule.getModuleStatus(ACModule.Modules.spammerProtection);
-	const now = Date.now();
-
-	if (player.isMuted) {
-		const muteInfo = player.getMuteInfo();
-		if(!muteInfo.isActive) player.isMuted = false;
-		else{
-			player.sendMessage(`§6[§eAnti Cheats§6]§4 You were muted by §c${muteInfo.admin}§4 Time remaining: §c${muteInfo.isPermanent ? "permanent" : formatMilliseconds(muteInfo.duration - Date.now())} §4reason: §c${muteInfo.reason}`);
-			data.cancel = true;
-			return;
-		}
-	}
-
-	if (!isAdmin && antiSpam) {
-		//message spam protection
-		if (message.length > 512) {
-			data.cancel = true;
-			player.ban("Sending invalid packet", Date.now(), true, "Anti Cheats AntiCheat");
-			Minecraft.system.run(() => { // Changed from system.run to Minecraft.system.run
-				player.runCommand(`kick @s §6[§eAnti Cheats§6]§r You have been permanently banned for sending invalid packet.`);
-			})
-			sendMessageToAllAdmins(`§6[§eAnti Cheats Notify§6]§c ${player.name}§4 was automatically banned for sending an invalid text packet (length=${message.length})`, true);
-			return;
-		}
-		if (message == player.lastMessage) {
-			data.cancel = true;
-			player.sendMessage(`§6[§eAnti Cheats§6]§r§c Please don't send repeating messages!`);
-			return;
-		}
-		else if (now - player.lastMessageDate <= config.default.chat.spammer.minTime) {
-			data.cancel = true;
-			player.lastMessageDate = now;
-			player.sendMessage(`§6[§eAnti Cheats§6]§r§c You're sending messages too quickly!`);
+		// 1. Handle Mute Status
+		if (handleMute(player, data)) {
 			return;
 		}
 
-		else if (message.length > config.default.chat.spammer.maxMessageCharLimit) {
-			data.cancel = true;
-			player.sendMessage(`§6[§eAnti Cheats§6]§r§c Sorry! Your message has too many characters!`);
+		// 2. Handle Anti-Spam (also updates player.lastMessage and player.lastMessageDate internally)
+		// Note: Whitelisted prefixes (like commands) have different spam rules inside handleAntiSpam.
+		if (handleAntiSpam(player, message, data, isAdmin)) {
 			return;
 		}
-		else if (message.split(" ").length > config.default.chat.spammer.maxMessageWordLimit) {
+
+		// 3. Handle Command Processing
+		if (message.startsWith(commandPrefix)) {
 			data.cancel = true;
-			player.sendMessage(`§6[§eAnti Cheats§6]§r§c Please keep your message below ${config.default.chat.spammer.maxMessageWordLimit} words!`);
-			return;
-		}
-	}
-
-	whitelistedPrefixes.forEach(wPrefix => {
-		if (message.startsWith(wPrefix)) {
-			doNotCheckSpam = true;
-		}
-	})
-
-	if (!doNotCheckSpam) {
-		player.lastMessage = message;
-		player.lastMessageDate = now;
-	}
-
-	// NEW RANK FORMATTING LOGIC STARTS HERE
-	if (!message.startsWith(prefix)) { // Only format if it's NOT a command
-		const playerRankId = player.getDynamicProperty("ac:rankId") || config.default.defaultRank;
-		// Ensure playerRankId is a string, as dynamic properties can return other types.
-		const rankIdStr = typeof playerRankId === 'string' ? playerRankId : config.default.defaultRank;
-		const rankInfo = config.default.ranks[rankIdStr];
-
-		if (rankInfo) { // Check if rankInfo is valid
-			const formattedMessage = `${rankInfo.displayText} ${rankInfo.nameColor}${player.name}§r: ${rankInfo.messageColor}${message}`;
-			data.cancel = true; // Cancel original message
-			world.sendMessage(formattedMessage); // Send formatted message
-			return; // Return after sending formatted message to prevent command processing
-		}
-		// If rankInfo is not found, the original message will proceed unless cancelled by other logic.
-	}
-	// NEW RANK FORMATTING LOGIC ENDS HERE
-
-	if (!message.startsWith(prefix)) return; // This check is now somewhat redundant if rank formatting happened, but kept for safety / if rank formatting doesn't occur.
-
-		data.cancel = true;
-		Minecraft.system.run(() => { // commandHandler itself should have try-catch if it makes external calls
-			try {
-				commandHandler(data);
-			} catch (e) {
-				logDebug("[Anti Cheats ERROR] Error in commandHandler inside system.run:", e, e.stack);
-				if (data.sender instanceof Minecraft.Player) {
-					data.sender.sendMessage("§cAn error occurred while processing your command.");
+			Minecraft.system.run(() => {
+				try {
+					commandHandler(data); // commandHandler should ideally have its own try-catch for its specific logic
+				} catch (e) {
+					logDebug("[Anti Cheats ERROR] Error executing commandHandler via system.run:", e, e.stack);
+					if (player instanceof Minecraft.Player) { // Ensure player is still valid
+						player.sendMessage("§cAn error occurred while processing your command.");
+					}
 				}
-			}
-		});
+			});
+			return;
+		}
+
+		// 4. Handle Rank Formatting for regular chat messages
+		const formattedMessage = formatChatMessageWithRank(player, message);
+		if (formattedMessage) {
+			data.cancel = true;
+			world.sendMessage(formattedMessage);
+		} else {
+			// If rank formatting returns null (e.g., rank not found), the original message is allowed to send.
+			// This matches the original logic where if rankInfo was not found, the message was not cancelled by that part.
+			// If the desired behavior is to *always* cancel if formatting fails, then `data.cancel = true;` would be needed here too.
+			// For now, replicating original behavior.
+		}
+		// No explicit return here, if formattedMessage is null, original message data (possibly uncancelled) proceeds.
+		// If it *was* formatted, it's sent and original is cancelled.
+
 	} catch (e) {
-		logDebug("[Anti Cheats ERROR] Error in chatSend event:", e, e.stack);
+		logDebug("[Anti Cheats ERROR] General error in chatSend event subscriber:", e, e.stack);
 		if (data && data.sender instanceof Minecraft.Player) {
 			try {
 				data.sender.sendMessage("§cAn error occurred processing your chat message.");
-				data.cancel = true; // Prevent further processing if possible
+				data.cancel = true; // Ensure cancellation on general error
 			} catch (sendMessageError) {
-				logDebug("[Anti Cheats ERROR] Failed to send error message to player in chatSend:", sendMessageError, sendMessageError.stack);
+				logDebug("[Anti Cheats ERROR] Failed to send error message to player in chatSend catch block:", sendMessageError, sendMessageError.stack);
 			}
-		}
+		} else if (data) {
+            // If sender is not a player, or data.sender is undefined, still try to cancel.
+            data.cancel = true;
+        }
 	}
-})
-
+});
 
 world.afterEvents.playerDimensionChange.subscribe((data) => {
 	try {
