@@ -24,26 +24,26 @@
     {
       "id": "III",
       "title": "Review and Refactor Specific Functions (Future)",
-      "status": "pending",
+      "status": "completed",
       "difficulty": "Low to Medium",
       "considerations": "Focus on improving code clarity, efficiency, and maintainability.",
       "sub_tasks": [
         {
           "id": "III.1",
           "title": "Examine scoreboardAction function in behaviour/scripts/assets/util.js",
-          "status": "pending",
+          "status": "completed",
           "considerations": "Understand the comment `//this shite not letting me delete it inside a before event :sob:` and see if a better solution is now possible or if the workaround is stable."
         },
         {
           "id": "I.2",
           "title": "Review config.default.debug check in sendMessageToAllAdmins in behaviour/scripts/assets/util.js",
-          "status": "pending",
+          "status": "completed",
           "considerations": "Determine its purpose and if it's still relevant or can be removed/refactored."
         },
         {
           "id": "III.3",
           "title": "Simplify rank formatting/command processing in world.beforeEvents.chatSend.subscribe in behaviour/scripts/index.js",
-          "status": "pending",
+          "status": "completed",
           "considerations": "Look for ways to make the logic clearer and more efficient."
         }
       ]
