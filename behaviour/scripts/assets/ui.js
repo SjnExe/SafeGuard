@@ -320,8 +320,36 @@ export function settingSelector(player, previousForm){ // Added previousForm fro
 		}
 	});
 }
-export function banLogForm(player, previousForm) { // Added previousForm
+
+/**
+ * Displays a form to show ban logs, with options for filtering and sorting.
+ * Allows navigation to a detailed view of a specific log entry and deletion of entries (for owners).
+ * Integrates with `showBanLogFilterSortForm` to get filter/sort criteria.
+ *
+ * @export
+ * @param {Minecraft.Player} player The player to show the form to.
+ * @param {Function} previousForm A function to call to return to the previous UI screen.
+ * @param {object} [filterOptions={}] Optional parameters for filtering and sorting the logs.
+ * @param {string} [filterOptions.playerName=""] Filter logs by player name (case-insensitive, partial match).
+ * @param {string} [filterOptions.adminName=""] Filter logs by admin name (case-insensitive, partial match).
+ * @param {"date"|"playerName"|"adminName"} [filterOptions.sortBy="date"] Criteria to sort logs by. Defaults to "date".
+ * @param {"asc"|"desc"} [filterOptions.sortOrder="desc"] Order to sort logs in ("asc" for ascending, "desc" for descending). Defaults to "desc".
+ * @returns {void}
+ */
+export function banLogForm(player, previousForm, filterOptions = {}) {
 	const logsString = world.getDynamicProperty("ac:banLogs");
+
+	// Initialize or retrieve current filter/sort options
+    // These might be passed in or stored/retrieved if persisting view preferences
+    const defaultSortBy = "date";
+    const defaultSortOrder = "desc";
+    const currentFilterOptions = {
+        playerName: filterOptions.playerName || "",
+        adminName: filterOptions.adminName || "",
+        sortBy: filterOptions.sortBy || defaultSortBy, 
+        sortOrder: filterOptions.sortOrder || defaultSortOrder 
+    };
+
 
 	if (!logsString) {
 		player.sendMessage(`§6[§eAnti Cheats§6]§f No logs to display (property missing).`);
@@ -329,9 +357,9 @@ export function banLogForm(player, previousForm) { // Added previousForm
 		return;
 	}
 	
-	let newLogs;
+	let allLogs;
 	try {
-		newLogs = JSON.parse(logsString);
+		allLogs = JSON.parse(logsString);
 	} catch (error) {
 		logDebug("[Anti Cheats UI] Error parsing banLogs JSON in banLogForm (initial load):", error, `Raw: ${logsString}`);
 		player.sendMessage("§6[§eAnti Cheats§6]§c Error reading ban logs. Data might be corrupted.");
@@ -339,49 +367,137 @@ export function banLogForm(player, previousForm) { // Added previousForm
 		return;
 	}
 
-	if (!Array.isArray(newLogs) || newLogs.length < 1) {
+	if (!Array.isArray(allLogs) || allLogs.length < 1) {
 		player.sendMessage(`§6[§eAnti Cheats§6]§f No logs to display (empty or invalid format).`);
 		if (previousForm) return previousForm(player); // Go back if no logs
 		return;
 	}
-	
-	const MAX_LOGS_DISPLAY = 50;
-	let displayLogs = newLogs;
-	let bodyMessage = `Select a player to view their ban log entry. Total logs: ${newLogs.length}`;
 
-	if (newLogs.length > MAX_LOGS_DISPLAY) {
-		displayLogs = newLogs.slice(-MAX_LOGS_DISPLAY);
-		bodyMessage = `Displaying the most recent ${MAX_LOGS_DISPLAY} of ${newLogs.length} logs. Older logs are still stored.`;
+	let filteredLogs = [...allLogs]; // Start with all logs, then filter
+
+    // Apply Player Name Filter (case-insensitive partial match)
+    if (currentFilterOptions.playerName && currentFilterOptions.playerName.trim() !== "") {
+        const filterPlayer = currentFilterOptions.playerName.trim().toLowerCase();
+        filteredLogs = filteredLogs.filter(log => log.a && log.a.toLowerCase().includes(filterPlayer));
+    }
+
+    // Apply Admin Name Filter (case-insensitive partial match)
+    if (currentFilterOptions.adminName && currentFilterOptions.adminName.trim() !== "") {
+        const filterAdmin = currentFilterOptions.adminName.trim().toLowerCase();
+        filteredLogs = filteredLogs.filter(log => log.b && log.b.toLowerCase().includes(filterAdmin));
+    }
+
+    // Apply Sorting
+    const sortBy = filterOptions.sortBy || "date"; // Default sort by date
+    const sortOrder = filterOptions.sortOrder || "desc"; // Default sort order descending
+
+    filteredLogs.sort((log1, log2) => {
+        let val1, val2;
+        switch (sortBy) {
+            case "playerName":
+                val1 = (log1.a || "").toLowerCase();
+                val2 = (log2.a || "").toLowerCase();
+                break;
+            case "adminName":
+                val1 = (log1.b || "").toLowerCase();
+                val2 = (log2.b || "").toLowerCase();
+                break;
+            case "date":
+            default: // Default to date sorting
+                // Assuming log.c is a timestamp (number) or a string that can be parsed by Date
+                val1 = typeof log1.c === 'string' ? new Date(log1.c).getTime() : Number(log1.c || 0);
+                val2 = typeof log2.c === 'string' ? new Date(log2.c).getTime() : Number(log2.c || 0);
+                break;
+        }
+
+        if (typeof val1 === 'string' && typeof val2 === 'string') {
+            return sortOrder === "asc" ? val1.localeCompare(val2) : val2.localeCompare(val1);
+        } else { // Handles numbers (timestamps)
+            return sortOrder === "asc" ? val1 - val2 : val2 - val1;
+        }
+    });
+
+	const MAX_LOGS_DISPLAY = 45; // Reduced to make space for Filter/Clear buttons
+	let displayLogs = filteredLogs;
+	let bodyMessage = `Select a log entry to view details. Total logs shown: ${filteredLogs.length} (out of ${allLogs.length} total).`;
+    if (filteredLogs.length === 0) {
+        bodyMessage = `No logs match your current filters. Total logs stored: ${allLogs.length}.`;
+    }
+
+
+	if (filteredLogs.length > MAX_LOGS_DISPLAY) {
+		displayLogs = filteredLogs.slice(-MAX_LOGS_DISPLAY); // Show most recent matching logs
+		bodyMessage = `Displaying the most recent ${MAX_LOGS_DISPLAY} of ${filteredLogs.length} matching logs. Older logs are still stored.`;
 	}
 
 	const form = new ActionFormData()
 		.title("§l§7Ban Logs") 
 		.body(bodyMessage);
+
+    // Add button for Filtering/Sorting
+    form.button("§bFilter & Sort Logs", "textures/ui/icon_filter.png"); // Icon updated as per VI.5.7
+
+    const isFilteredOrSorted = currentFilterOptions.playerName || 
+                               currentFilterOptions.adminName || 
+                               currentFilterOptions.sortBy !== defaultSortBy || 
+                               currentFilterOptions.sortOrder !== defaultSortOrder;
+
+    if (isFilteredOrSorted) {
+        form.button("§eClear Filters/Sort", "textures/ui/refresh_light.png");
+    }
 	
-	for(const log of displayLogs){ // Iterate over displayLogs
+	for(const log of displayLogs){ 
 		if(!log) continue;
-		// Format: PlayerName - By: AdminName - On: MM/DD/YYYY (ID: abc12...)
-		const dateString = new Date(log.c).toLocaleDateString(); // Short date format
+		const dateString = new Date(log.c).toLocaleDateString(); 
 		const buttonText = `§e${log.a}§r - By: ${log.b}\nOn: ${dateString} (ID: ${log.logId ? log.logId.substring(0,5) : 'N/A'}...)`;
 		form.button(buttonText, "textures/ui/paper.png"); 
 	}
 
 	if (previousForm) {
-		form.button("§cBack", "textures/ui/cancel.png"); // Standardized Back button
+		form.button("§cBack", "textures/ui/cancel.png"); 
 	}
 	
-	form.show(player).then((formData) => {
+	form.show(player).then(async (formData) => { // Made async to await showBanLogFilterSortForm
 		if (formData.canceled) {
 			if (previousForm) return previousForm(player);
 			return;
 		}
+
+        let actionIndex = formData.selection;
+        let hasClearButton = isFilteredOrSorted;
+
+        if (actionIndex === 0) { // "Filter & Sort Logs" button
+            const newOptions = await showBanLogFilterSortForm(player, currentFilterOptions);
+            if (newOptions) {
+                return banLogForm(player, previousForm, newOptions); // Re-call with new options
+            } else {
+                // If filter form is cancelled, re-show banLogForm with the same current options
+                return banLogForm(player, previousForm, currentFilterOptions); 
+            }
+        }
+        
+        if (hasClearButton && actionIndex === 1) { // "Clear Filters/Sort" button
+            return banLogForm(player, previousForm, {}); // Re-call with empty options to clear
+        }
+
+        // Adjust logSelectionIndex based on how many special buttons were present
+        // If "Clear" button was present, log entries start after it (index 2 onwards).
+        // If "Clear" button was NOT present, log entries start after "Filter & Sort" (index 1 onwards).
+        let logSelectionIndex = actionIndex - (hasClearButton ? 2 : 1);
+        
 		// Handle Back button selection
-		// Adjust index for displayLogs if it was sliced
-		if (previousForm && formData.selection === displayLogs.length) { 
+        // The back button is always the last button *after* the log entries.
+        // So, its index relative to the start of log entries is displayLogs.length
+		if (previousForm && logSelectionIndex === displayLogs.length) { 
 			return previousForm(player);
 		}
 
-		const banLog = displayLogs[formData.selection]; // Use displayLogs
+		if (logSelectionIndex < 0 || logSelectionIndex >= displayLogs.length) {
+            logDebug(`[UI Error] banLogForm: Invalid log selection index ${logSelectionIndex}. ActionIndex: ${actionIndex}, HasClear: ${hasClearButton}, Displayed: ${displayLogs.length}`);
+            return banLogForm(player, previousForm, currentFilterOptions); // Reshow current form state
+        }
+
+		const banLog = displayLogs[logSelectionIndex]; 
 		const form2 = new MessageFormData()
 			.title(`§l§7Log Details: ${banLog.a}`) 
 			.body(
@@ -453,6 +569,80 @@ export function banLogForm(player, previousForm) { // Added previousForm
 		}
 	});
 }
+
+
+/**
+ * Shows a modal form to the player for filtering and sorting ban logs.
+ * @param {Minecraft.Player} player The player to show the form to.
+ * @param {object} currentOptions An object containing the current filter and sort options.
+ * @param {string} [currentOptions.playerName=""] Current filter for player name.
+ * @param {string} [currentOptions.adminName=""] Current filter for admin name.
+ * @param {"date"|"playerName"|"adminName"} [currentOptions.sortBy="date"] Current sort criteria.
+ * @param {"asc"|"desc"} [currentOptions.sortOrder="desc"] Current sort order.
+ * @returns {Promise<object|null>} A promise that resolves to an object with the selected filter/sort options
+ *                                 (keys: `playerName`, `adminName`, `sortBy`, `sortOrder`)
+ *                                 if the form is submitted, or `null` if it's cancelled or an error occurs.
+ */
+export async function showBanLogFilterSortForm(player, currentOptions = {}) {
+	const form = new ModalFormData();
+	form.title("Filter & Sort Ban Logs");
+
+	const defaultPlayerName = currentOptions.playerName || "";
+	const defaultAdminName = currentOptions.adminName || "";
+	const defaultSortBy = currentOptions.sortBy || "date";
+	const defaultSortOrder = currentOptions.sortOrder || "desc";
+
+	form.textField("Filter by Player Name (leave empty for no filter):", "Enter player name...", defaultPlayerName);
+	form.textField("Filter by Admin Name (leave empty for no filter):", "Enter admin name...", defaultAdminName);
+
+	const sortByOptions = ["Date", "Player Name", "Admin Name"];
+	let defaultSortByIndex = 0;
+	if (defaultSortBy === "playerName") defaultSortByIndex = 1;
+	else if (defaultSortBy === "adminName") defaultSortByIndex = 2;
+	form.dropdown("Sort By:", sortByOptions, { defaultValue: defaultSortByIndex });
+
+	const sortOrderOptions = ["Ascending", "Descending"];
+	let defaultSortOrderIndex = 1; // Default to Descending
+	if (defaultSortOrder === "asc") defaultSortOrderIndex = 0;
+	form.dropdown("Sort Order:", sortOrderOptions, { defaultValue: defaultSortOrderIndex });
+
+	try {
+		const response = await form.show(player);
+
+		if (response.cancelationReason) {
+			logDebug("[UI] Ban Log Filter/Sort form cancelled by player.", response.cancelationReason);
+			return null; // Or { cancelled: true }
+		}
+
+		if (response.formValues) {
+			const selectedPlayerName = response.formValues[0];
+			const selectedAdminName = response.formValues[1];
+			const selectedSortByIndex = response.formValues[2];
+			const selectedSortOrderIndex = response.formValues[3];
+
+			let sortByValue = "date"; // Default
+			if (selectedSortByIndex === 1) sortByValue = "playerName";
+			else if (selectedSortByIndex === 2) sortByValue = "adminName";
+
+			const sortOrderValue = selectedSortOrderIndex === 0 ? "asc" : "desc";
+
+			return {
+				playerName: selectedPlayerName,
+				adminName: selectedAdminName,
+				sortBy: sortByValue,
+				sortOrder: sortOrderValue,
+			};
+		}
+		return null; // Should not happen if not cancelled and no formValues, but as a fallback
+	} catch (e) {
+		logDebug(`[UI Error][showBanLogFilterSortForm]: ${e} ${e.stack}`);
+		if (player && typeof player.sendMessage === 'function') {
+			player.sendMessage("§cAn error occurred with the Filter & Sort Logs form. Please try again.");
+		}
+		return null; // Indicate error or cancellation
+	}
+}
+
 
 function ownerLoginForm(player, nextForm, previousFormForNext){
 	if(!config.default.OWNER_PASSWORD){
